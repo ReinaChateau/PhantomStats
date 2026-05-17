@@ -1,0 +1,705 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Coke & Sprite</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Geist:wght@300;400;500;600;700&family=Nunito:wght@400;600;700;800&family=Josefin+Sans:wght@400;600;700&display=swap"/>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%;overflow:hidden}
+  body{font-family:'Nunito',sans-serif;transition:background .4s,color .3s}
+
+  /* ── Themes ── */
+  body.theme-forest{
+    --bg:#d6f0ee;--bg-panel:#c2e8e4;--bg-input:#b0deda;
+    --primary:#2ab5a4;--primary-dark:#1e8f81;
+    --accent:#0d5c52;--accent-soft:#2ab5a422;
+    --sent:#3ecbb9;--sent-border:#2ab5a4;
+    --recv:#eaf8f6;--recv-border:#8dd8d2;
+    --text:#0d3b35;--muted:#4a9b92;
+    --settings-bg:#bbdfdb;--avatar-border:#2ab5a4;
+    --header-bg:#167a6e;--header-text:#eaf8f6;
+    --shadow:rgba(42,181,164,.25);--sys-msg:#b0deda;
+  }
+  body.theme-lavender{
+    --bg:#f0ecf8;--bg-panel:#e8e0f5;--bg-input:#ddd5f0;
+    --primary:#9b72cf;--primary-dark:#7a54b0;
+    --accent:#5c3a99;--accent-soft:#9b72cf22;
+    --sent:#b48de0;--sent-border:#9b72cf;
+    --recv:#ede8f8;--recv-border:#c8b4e3;
+    --text:#2d1b4e;--muted:#7a5fa0;
+    --settings-bg:#e0d8f0;--avatar-border:#9b72cf;
+    --header-bg:#2d1b4e;--header-text:#ede8f8;
+    --shadow:rgba(155,114,207,.25);--sys-msg:#ddd5f0;
+  }
+  body.theme-coke{
+    --bg:#0a0a0a;--bg-panel:#141414;--bg-input:#1c1c1c;
+    --primary:#e8001c;--primary-dark:#b00015;
+    --accent:#ff3344;--accent-soft:#ff334422;
+    --sent:#2a0008;--sent-border:#e8001c;
+    --recv:#1a1a1a;--recv-border:#3a1a1a;
+    --text:#f5f0f0;--muted:#996677;
+    --settings-bg:#0d0d0d;--avatar-border:#e8001c;
+    --header-bg:#050505;--header-text:#f5f0f0;
+    --shadow:rgba(232,0,28,.3);--sys-msg:#1a1a1a;
+  }
+  body.theme-sprite{
+    --bg:#f4f7f4;--bg-panel:#eaf2ea;--bg-input:#dceadc;
+    --primary:#1a8c3a;--primary-dark:#136b2c;
+    --accent:#1a8c3a;--accent-soft:#1a8c3a22;
+    --sent:#1a8c3a;--sent-border:#136b2c;
+    --recv:#ffffff;--recv-border:#b8d4b8;
+    --text:#1a2e1a;--muted:#5a7a5a;
+    --settings-bg:#e2ede2;--avatar-border:#1a8c3a;
+    --header-bg:#1a2e1a;--header-text:#eaf2ea;
+    --shadow:rgba(26,140,58,.2);--sys-msg:#dceadc;
+  }
+
+  body.font-geist   { font-family:'Geist',sans-serif }
+  body.font-cinzel  { font-family:'Cinzel',serif }
+  body.font-nunito  { font-family:'Nunito',sans-serif }
+  body.font-josefin { font-family:'Josefin Sans',sans-serif }
+  body.font-cambria { font-family:'Cambria Math','Cambria',serif }
+
+  #app{height:100vh;display:flex;flex-direction:column;background:var(--bg);color:var(--text)}
+
+  /* ── Login ── */
+  #login{flex:1;display:flex;align-items:center;justify-content:center;padding:24px;background:var(--bg)}
+  .login-card{width:100%;max-width:400px;background:var(--bg-panel);border:2px solid var(--primary);padding:36px 32px;position:relative;transition:border-radius .4s,box-shadow .4s}
+  .login-card.kiki{box-shadow:6px 6px 0 var(--primary)}
+  .login-card.bouba{border-radius:20px;box-shadow:0 8px 40px var(--shadow)}
+  .kiki-corner{position:absolute;top:-2px;left:-2px;width:40px;height:40px;background:var(--primary);clip-path:polygon(0 0,100% 0,0 100%)}
+  .bouba-bubble{position:absolute;top:-22px;left:50%;transform:translateX(-50%);width:52px;height:52px;border-radius:50%;background:var(--primary);display:flex;align-items:center;justify-content:center;font-size:24px;box-shadow:0 4px 16px var(--shadow)}
+  .login-title{font-size:26px;font-weight:700;color:var(--accent);margin-bottom:2px}
+  .login-card.kiki .login-title{letter-spacing:.08em;text-transform:uppercase;text-align:left;margin-top:0}
+  .login-card.bouba .login-title{letter-spacing:.01em;text-align:center;margin-top:24px}
+  .login-sub{font-size:13px;color:var(--muted);margin-bottom:26px}
+  .login-card.kiki .login-sub{text-align:left}
+  .login-card.bouba .login-sub{text-align:center}
+  .field-label{display:block;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:6px}
+  .field-input{width:100%;background:var(--bg-input);border:2px solid var(--recv-border);color:var(--text);font-size:15px;padding:10px 14px;margin-bottom:16px;outline:none;transition:border-color .2s,border-radius .4s;font-family:inherit}
+  .field-input:focus{border-color:var(--primary)}
+  body.mode-kiki .field-input{border-radius:0}
+  body.mode-bouba .field-input{border-radius:12px}
+  .join-btn{width:100%;background:var(--primary);color:#fff;border:none;font-size:14px;font-weight:700;padding:13px;cursor:pointer;font-family:inherit;transition:opacity .2s,border-radius .4s,clip-path .4s}
+  .join-btn:hover{opacity:.85}
+  body.mode-kiki .join-btn{letter-spacing:.12em;text-transform:uppercase;clip-path:polygon(0 0,calc(100% - 10px) 0,100% 10px,100% 100%,10px 100%,0 calc(100% - 10px));box-shadow:3px 3px 0 var(--primary-dark);border-radius:0}
+  body.mode-bouba .join-btn{letter-spacing:.02em;border-radius:12px;box-shadow:0 4px 16px var(--shadow)}
+  .login-hint{margin-top:14px;font-size:11px;color:var(--muted);text-align:center;line-height:1.6}
+  .login-error{margin-top:10px;font-size:12px;color:#e8001c;text-align:center;min-height:16px}
+
+  /* ── Chat ── */
+  #chat{flex:1;display:none;flex-direction:column;height:100vh;overflow:hidden;background:var(--bg)}
+  #chat.active{display:flex}
+
+  /* ── Header ── */
+  #header{background:var(--header-bg);border-bottom:2px solid var(--primary);padding:0 14px;display:flex;align-items:center;justify-content:space-between;height:60px;flex-shrink:0}
+  .room-tag{background:var(--primary);color:#fff;font-size:12px;font-weight:700;transition:all .4s}
+  body.mode-kiki .room-tag{clip-path:polygon(0 0,calc(100% - 14px) 0,100% 100%,14px 100%);padding:5px 26px 5px 12px;letter-spacing:.1em;text-transform:uppercase;border-radius:0}
+  body.mode-bouba .room-tag{border-radius:20px;padding:5px 16px;letter-spacing:.04em}
+  .header-right{display:flex;align-items:center;gap:10px}
+  .vibe-display{display:flex;flex-direction:column;align-items:center;gap:1px;position:relative}
+  .vibe-label{font-size:9px;color:var(--header-text);opacity:.5;letter-spacing:.06em}
+  .vibe-row{display:flex;gap:3px;align-items:center}
+  .vibe-emoji{font-size:15px}
+  .vibe-divider{width:1px;height:28px;background:var(--primary);opacity:.4}
+  .avatar-box{border:2px solid var(--avatar-border);background:var(--bg-input);overflow:hidden;flex-shrink:0;width:36px;height:36px;transition:all .4s}
+  body.mode-kiki .avatar-box{clip-path:polygon(10% 0%,90% 0%,100% 10%,100% 90%,90% 100%,10% 100%,0% 90%,0% 10%);border-radius:0}
+  body.mode-bouba .avatar-box{clip-path:none;border-radius:50%}
+  .settings-btn{background:transparent;border:1.5px solid var(--avatar-border);color:var(--header-text);cursor:pointer;font-size:17px;width:34px;height:34px;display:flex;align-items:center;justify-content:center;transition:all .2s;font-family:inherit}
+  body.mode-kiki .settings-btn{border-radius:0}
+  body.mode-bouba .settings-btn{border-radius:50%}
+  .settings-btn:hover{background:rgba(128,128,128,.2)}
+  #my-vibe-toggle{cursor:pointer}
+
+  /* ── Vibe picker ── */
+  .vibe-picker{position:absolute;top:calc(100% + 8px);right:0;z-index:200;background:var(--bg-panel);border:2px solid var(--primary);padding:12px;min-width:210px;display:none;animation:fadeUp .18s ease;box-shadow:0 8px 32px var(--shadow)}
+  .vibe-picker.open{display:block}
+  body.mode-kiki .vibe-picker{border-radius:0}
+  body.mode-bouba .vibe-picker{border-radius:16px}
+  .vibe-picker-label{font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:8px}
+  .vibe-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+  .vibe-btn{font-size:20px;padding:6px;cursor:pointer;background:transparent;border:1.5px solid transparent;transition:all .15s;font-family:inherit}
+  body.mode-kiki .vibe-btn{border-radius:0}
+  body.mode-bouba .vibe-btn{border-radius:8px}
+  .vibe-btn.active,.vibe-btn:hover{background:var(--accent-soft);border-color:var(--primary)}
+
+  /* ── Messages ── */
+  #messages{flex:1;overflow-y:auto;padding:14px 12px;display:flex;flex-direction:column;gap:10px;scroll-behavior:smooth}
+  #messages::-webkit-scrollbar{width:4px}
+  #messages::-webkit-scrollbar-thumb{background:var(--primary);opacity:.4;border-radius:4px}
+  .msg-row{display:flex;align-items:flex-end;gap:8px;animation:fadeUp .22s ease}
+  .msg-row.me{flex-direction:row-reverse}
+  .msg-avatar{width:36px;height:36px;flex-shrink:0;border:2px solid var(--avatar-border);background:var(--bg-input);overflow:hidden;transition:all .4s}
+  body.mode-kiki .msg-avatar{clip-path:polygon(10% 0%,90% 0%,100% 10%,100% 90%,90% 100%,10% 100%,0% 90%,0% 10%);border-radius:0}
+  body.mode-bouba .msg-avatar{clip-path:none;border-radius:50%}
+  .msg-col{max-width:68%;display:flex;flex-direction:column}
+  .msg-row.me .msg-col{align-items:flex-end}
+  .msg-row.them .msg-col{align-items:flex-start}
+  .bubble{padding:9px 14px;font-size:14px;line-height:1.5;word-break:break-word;transition:all .4s}
+  .bubble.me{background:var(--sent);border:2px solid var(--sent-border);color:var(--text)}
+  .bubble.them{background:var(--recv);border:2px solid var(--recv-border);color:var(--text)}
+  body.mode-kiki .bubble.me{clip-path:polygon(10px 0%,100% 0%,100% calc(100% - 10px),calc(100% - 10px) 100%,0% 100%,0% 10px);box-shadow:3px 3px 0 var(--sent-border);border-radius:0}
+  body.mode-kiki .bubble.them{clip-path:polygon(0% 0%,calc(100% - 10px) 0%,100% 10px,100% 100%,10px 100%,0% calc(100% - 10px));box-shadow:3px 3px 0 var(--recv-border);border-radius:0}
+  body.mode-bouba .bubble.me{border-radius:18px 4px 18px 18px;box-shadow:0 2px 12px var(--shadow);clip-path:none}
+  body.mode-bouba .bubble.them{border-radius:4px 18px 18px 18px;box-shadow:0 2px 10px var(--shadow);clip-path:none}
+  .msg-time{font-size:10px;color:var(--muted);margin-top:3px}
+  .sys-msg{text-align:center}
+  .sys-msg span{background:var(--sys-msg);color:var(--muted);font-size:11px;padding:3px 12px;border-radius:20px;display:inline-block}
+
+  /* ── Music bar ── */
+  #music-bar{background:var(--bg-panel);border-top:1px solid var(--recv-border);padding:8px 14px;display:flex;align-items:center;gap:10px;flex-shrink:0}
+  .music-emoji{font-size:15px}
+  .music-skip{background:transparent;border:none;color:var(--muted);cursor:pointer;font-size:18px;line-height:1;padding:0 4px;font-family:inherit}
+  .music-play{background:var(--primary);border:none;color:#fff;cursor:pointer;width:30px;height:30px;display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0;transition:all .3s;font-family:inherit}
+  body.mode-kiki .music-play{clip-path:polygon(10% 0%,90% 0%,100% 10%,100% 90%,90% 100%,10% 100%,0% 90%,0% 10%);border-radius:0}
+  body.mode-bouba .music-play{clip-path:none;border-radius:50%}
+  .music-play:hover{opacity:.85}
+  .music-label{font-size:11px;color:var(--muted);flex:1;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+  body.mode-kiki .music-label{letter-spacing:.06em}
+  .music-vol{width:60px;accent-color:var(--primary);cursor:pointer}
+
+  /* ── Input bar ── */
+  #input-bar{background:var(--bg-input);border-top:2px solid var(--primary);padding:10px 12px;display:flex;gap:8px;align-items:center;flex-shrink:0}
+  #msg-input{flex:1;background:var(--bg);border:2px solid var(--recv-border);color:var(--text);font-size:14px;padding:9px 14px;outline:none;transition:border-color .2s,border-radius .4s;font-family:inherit}
+  #msg-input:focus{border-color:var(--primary)}
+  body.mode-kiki #msg-input{border-radius:0}
+  body.mode-bouba #msg-input{border-radius:12px}
+  #msg-input::placeholder{color:var(--muted);opacity:.6}
+  .send-btn{background:var(--primary);border:none;color:#fff;font-size:13px;font-weight:700;padding:9px 18px;cursor:pointer;font-family:inherit;transition:all .2s}
+  .send-btn:hover{opacity:.85}
+  body.mode-kiki .send-btn{letter-spacing:.08em;text-transform:uppercase;clip-path:polygon(0 0,calc(100% - 8px) 0,100% 8px,100% 100%,8px 100%,0 calc(100% - 8px));box-shadow:2px 2px 0 var(--primary-dark);border-radius:0}
+  body.mode-bouba .send-btn{border-radius:12px;box-shadow:0 3px 12px var(--shadow)}
+
+  /* ── Settings panel ── */
+  #overlay{position:fixed;inset:0;z-index:100;background:rgba(0,0,0,.55);display:none;justify-content:flex-end}
+  #overlay.open{display:flex}
+  #settings-panel{background:var(--settings-bg);width:min(320px,100%);height:100%;border-left:2px solid var(--primary);padding:26px 20px;overflow-y:auto;display:flex;flex-direction:column;gap:22px;animation:slideIn .25s ease;transition:border-radius .4s}
+  body.mode-kiki #settings-panel{border-radius:0}
+  body.mode-bouba #settings-panel{border-radius:20px 0 0 20px}
+  .panel-header{display:flex;align-items:center;justify-content:space-between}
+  .panel-badge{background:var(--primary);color:#fff;display:inline-block;font-size:13px;font-weight:700;transition:all .4s}
+  body.mode-kiki .panel-badge{clip-path:polygon(0 0,calc(100% - 10px) 0,100% 100%,10px 100%);padding:4px 22px 4px 10px;letter-spacing:.12em;text-transform:uppercase;border-radius:0}
+  body.mode-bouba .panel-badge{border-radius:20px;padding:4px 16px;letter-spacing:.04em}
+  .close-btn{background:transparent;border:none;color:var(--muted);font-size:20px;cursor:pointer;font-family:inherit}
+  .section-label{font-size:11px;font-weight:600;color:var(--muted);margin-bottom:8px;transition:all .4s}
+  body.mode-kiki .section-label{letter-spacing:.1em;text-transform:uppercase}
+  body.mode-bouba .section-label{letter-spacing:.04em}
+  .btn-row{display:flex;gap:8px}
+  .opt-btn{flex:1;padding:10px 6px;cursor:pointer;font-size:13px;font-weight:700;border:2px solid var(--recv-border);background:var(--bg-panel);color:var(--muted);transition:all .2s;font-family:inherit}
+  .opt-btn:hover{border-color:var(--primary)}
+  .opt-btn.active{background:var(--primary);color:#fff;border-color:var(--primary)}
+  body.mode-kiki .opt-btn{border-radius:0}
+  body.mode-bouba .opt-btn{border-radius:12px}
+  .theme-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+  .font-list{display:flex;flex-direction:column;gap:6px}
+  .font-btn{padding:9px 14px;cursor:pointer;font-size:15px;text-align:left;border:2px solid var(--recv-border);background:var(--bg-panel);color:var(--text);transition:all .2s;font-family:inherit}
+  .font-btn:hover{border-color:var(--primary)}
+  .font-btn.active{background:var(--bg-input);color:var(--accent);border-color:var(--primary)}
+  body.mode-kiki .font-btn{border-radius:0}
+  body.mode-kiki .font-btn.active{clip-path:polygon(0 0,calc(100% - 6px) 0,100% 6px,100% 100%,6px 100%,0 calc(100% - 6px))}
+  body.mode-bouba .font-btn{border-radius:12px}
+  .avatar-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .avatar-btn{background:var(--bg-panel);border:2px solid var(--recv-border);cursor:pointer;padding:10px;display:flex;flex-direction:column;align-items:center;gap:6px;transition:all .2s;font-family:inherit}
+  .avatar-btn:hover{border-color:var(--primary)}
+  .avatar-btn.active{background:var(--bg-input);border-color:var(--primary)}
+  body.mode-kiki .avatar-btn{border-radius:0}
+  body.mode-kiki .avatar-btn.active{clip-path:polygon(8px 0%,100% 0%,100% calc(100% - 8px),calc(100% - 8px) 100%,0% 100%,0% 8px)}
+  body.mode-bouba .avatar-btn{border-radius:12px}
+  .avatar-btn span{font-size:11px;color:var(--muted)}
+  .avatar-btn.active span{color:var(--accent)}
+  body.mode-kiki .avatar-btn span{letter-spacing:.08em;text-transform:uppercase}
+  .avatar-preview{width:52px;height:52px}
+  .leave-btn{margin-top:auto;padding:11px;background:transparent;border:2px solid var(--recv-border);color:var(--muted);font-size:12px;cursor:pointer;font-family:inherit;transition:all .2s}
+  .leave-btn:hover{border-color:var(--primary);color:var(--text)}
+  body.mode-kiki .leave-btn{letter-spacing:.1em;text-transform:uppercase;border-radius:0}
+  body.mode-bouba .leave-btn{border-radius:12px}
+
+  body.mode-kiki .opt-btn.active{box-shadow:2px 2px 0 var(--primary-dark)}
+  body.mode-bouba .opt-btn.active{box-shadow:0 3px 10px var(--shadow)}
+  body.mode-kiki .font-btn.active{box-shadow:2px 2px 0 var(--primary-dark)}
+  body.mode-bouba .font-btn.active{box-shadow:0 3px 10px var(--shadow)}
+  body.mode-kiki .avatar-btn.active{box-shadow:3px 3px 0 var(--primary-dark)}
+  body.mode-bouba .avatar-btn.active{box-shadow:0 3px 10px var(--shadow)}
+  #btn-kiki{border-radius:0 !important}
+  #btn-bouba{border-radius:20px !important}
+
+  @keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+  @keyframes slideIn{from{transform:translateX(100%)}to{transform:translateX(0)}}
+</style>
+</head>
+<body class="theme-forest mode-kiki">
+<div id="app">
+
+  <!-- LOGIN -->
+  <div id="login">
+    <div class="login-card kiki">
+      <div class="kiki-corner"></div>
+      <h1 class="login-title">COKE &amp; SPRITE</h1>
+      <p class="login-sub">Welcome</p>
+      <label class="field-label">Your Username</label>
+      <input class="field-input" id="input-user" placeholder="enter your name..." autocomplete="off"/>
+      <label class="field-label">Chat Room Name</label>
+      <input class="field-input" id="input-room" placeholder="share this with your friend..." autocomplete="off"/>
+      <button class="join-btn" onclick="joinChat()">Enter Chat →</button>
+      <p class="login-hint">Both users enter the same room name to join the same chat.</p>
+      <p class="login-error" id="login-error"></p>
+    </div>
+  </div>
+
+  <!-- CHAT -->
+  <div id="chat">
+    <div id="header">
+      <div class="room-tag" id="room-tag"># room</div>
+      <div class="header-right">
+        <!-- Friend vibe -->
+        <div class="vibe-display" style="pointer-events:none">
+          <span class="vibe-label">friend</span>
+          <div class="vibe-row">
+            <span class="vibe-emoji" id="them-vibe-emoji">—</span>
+          </div>
+        </div>
+        <div class="vibe-divider"></div>
+        <!-- My vibe -->
+        <div class="vibe-display" id="my-vibe-toggle" onclick="toggleVibePicker()">
+          <span class="vibe-label">you</span>
+          <div class="vibe-row">
+            <span class="vibe-emoji" id="my-vibe-emoji">😊</span>
+          </div>
+          <div class="vibe-picker" id="vibe-picker">
+            <p class="vibe-picker-label">Vibe</p>
+            <div class="vibe-grid" id="vibe-grid"></div>
+          </div>
+        </div>
+        <div class="avatar-box" id="header-avatar"></div>
+        <button class="settings-btn" onclick="openSettings()">⚙</button>
+      </div>
+    </div>
+
+    <div id="messages"></div>
+
+    <!-- Music bar -->
+    <div id="music-bar">
+      <span class="music-emoji" id="music-emoji">📚</span>
+      <button class="music-skip" onclick="prevTrack()">‹</button>
+      <button class="music-play" id="play-btn" onclick="togglePlay()">▶</button>
+      <button class="music-skip" onclick="nextTrack()">›</button>
+      <span class="music-label" id="music-label">Lofi Study</span>
+      <input type="range" class="music-vol" min="0" max="1" step="0.05" value="0.5" oninput="setVolume(this.value)"/>
+      <span style="font-size:11px;color:var(--muted)">🔊</span>
+    </div>
+
+    <!-- Input -->
+    <div id="input-bar">
+      <input id="msg-input" placeholder="type a message..." autocomplete="off" onkeydown="if(event.key==='Enter')sendMsg()"/>
+      <button class="send-btn" onclick="sendMsg()">Send →</button>
+    </div>
+  </div>
+</div>
+
+<!-- Settings overlay -->
+<div id="overlay" onclick="closeSettings()">
+  <div id="settings-panel" onclick="event.stopPropagation()">
+    <div class="panel-header">
+      <div class="panel-badge" id="panel-badge">SETTINGS</div>
+      <button class="close-btn" onclick="closeSettings()">✕</button>
+    </div>
+    <div>
+      <p class="section-label">UI Style</p>
+      <div class="btn-row">
+        <button class="opt-btn active" id="btn-kiki" onclick="setMode('kiki')">◈ Kiki</button>
+        <button class="opt-btn" id="btn-bouba" onclick="setMode('bouba')">◉ Bouba</button>
+      </div>
+    </div>
+    <div>
+      <p class="section-label">Theme</p>
+      <div class="theme-grid" id="theme-grid"></div>
+    </div>
+    <div>
+      <p class="section-label">Font</p>
+      <div class="font-list" id="font-list"></div>
+    </div>
+    <div>
+      <p class="section-label">Avatar</p>
+      <div class="avatar-grid" id="avatar-grid"></div>
+    </div>
+    <button class="leave-btn" onclick="leaveChat()">← Leave Room</button>
+  </div>
+</div>
+
+<script type="module">
+// ── Firebase ───────────────────────────────────────────────────────────────
+import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-app.js";
+import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, serverTimestamp, doc, setDoc, onSnapshot as onSnap } from "https://www.gstatic.com/firebasejs/11.0.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyAa1Vkbhum-Xh9y_Zwz5RMHd3H6J6pLBlY",
+  authDomain: "coke-and-sprite.firebaseapp.com",
+  projectId: "coke-and-sprite",
+  storageBucket: "life-7d79a.firebasestorage.app",
+  messagingSenderId: "619049822813",
+  appId: "1:619049822813:web:f2fc3a542aa36e11cdfbb4",
+  measurementId: "G-MWD57EPF92"
+};
+
+const app = initializeApp(firebaseConfig);
+const db  = getFirestore(app);
+
+// ── State ──────────────────────────────────────────────────────────────────
+let state = {
+  username: '', roomName: '',
+  theme: 'forest', mode: 'kiki', font: 'nunito', avatar: 'penguin',
+  myVibe: '😊',
+  trackIdx: 0, playing: false,
+  vibeOpen: false,
+};
+let unsubMessages = null; // Firestore listener handle
+let unsubPresence = null; // Presence listener handle
+let renderedIds = new Set(); // track already-rendered message IDs
+
+// ── Constants ──────────────────────────────────────────────────────────────
+const THEMES = [
+  { id:'forest',   name:'Forest',   emoji:'🌿' },
+  { id:'lavender', name:'Lavender', emoji:'💜' },
+  { id:'coke',     name:'Coke',     emoji:'🥤' },
+  { id:'sprite',   name:'Sprite',   emoji:'🍃' },
+];
+const FONTS = [
+  { id:'geist',   name:'Geist',       css:"'Geist',sans-serif" },
+  { id:'cinzel',  name:'Cinzel',       css:"'Cinzel',serif" },
+  { id:'nunito',  name:'Nunito',       css:"'Nunito',sans-serif" },
+  { id:'josefin', name:'Josefin Sans', css:"'Josefin Sans',sans-serif" },
+  { id:'cambria', name:'Cambria Math', css:"'Cambria Math','Cambria',serif" },
+];
+const TRACKS = [
+  { id:'lofi',     label:'Lofi Study',      emoji:'📚', url:'https://cdn.pixabay.com/audio/2022/05/27/audio_1808fbf07a.mp3' },
+  { id:'elevator', label:'Elevator Jazz',   emoji:'🛗', url:'https://cdn.pixabay.com/audio/2022/03/15/audio_8cb3c6e0f4.mp3' },
+  { id:'rainy',    label:'Rainy Day Piano', emoji:'🌧️', url:'https://cdn.pixabay.com/audio/2021/11/13/audio_cb31e75f74.mp3' },
+  { id:'chill',    label:'Chill Beats',     emoji:'🌊', url:'https://cdn.pixabay.com/audio/2022/10/16/audio_12b6a2bb3e.mp3' },
+];
+const VIBES = ['😊','😴','🔥','💭','😂','😔','😤','✨'];
+const AVATARS = {
+  penguin: `<svg viewBox="0 0 80 80" width="100%" height="100%"><ellipse cx="40" cy="48" rx="22" ry="24" fill="#1a1a2e"/><ellipse cx="40" cy="50" rx="13" ry="16" fill="#f0f0f0"/><ellipse cx="40" cy="26" rx="18" ry="18" fill="#1a1a2e"/><ellipse cx="29" cy="30" rx="5" ry="4" fill="#ff9999" opacity=".5"/><ellipse cx="51" cy="30" rx="5" ry="4" fill="#ff9999" opacity=".5"/><ellipse cx="40" cy="34" rx="5" ry="3" fill="#f4a261"/><rect x="24" y="21" width="13" height="8" rx="3" fill="#111"/><rect x="43" y="21" width="13" height="8" rx="3" fill="#111"/><line x1="37" y1="25" x2="43" y2="25" stroke="#555" stroke-width="1.5"/><line x1="24" y1="25" x2="20" y2="23" stroke="#555" stroke-width="1.5"/><line x1="56" y1="25" x2="60" y2="23" stroke="#555" stroke-width="1.5"/><rect x="26" y="23" width="4" height="2" rx="1" fill="#fff" opacity=".3"/><rect x="45" y="23" width="4" height="2" rx="1" fill="#fff" opacity=".3"/></svg>`,
+  giraffe: `<svg viewBox="0 0 80 80" width="100%" height="100%"><rect x="30" y="45" width="20" height="25" rx="8" fill="#e9c46a"/><ellipse cx="36" cy="55" rx="4" ry="3" fill="#c9a227" opacity=".6"/><ellipse cx="46" cy="62" rx="3" ry="2.5" fill="#c9a227" opacity=".6"/><ellipse cx="40" cy="30" rx="20" ry="18" fill="#e9c46a"/><ellipse cx="30" cy="25" rx="4" ry="3" fill="#c9a227" opacity=".5"/><ellipse cx="50" cy="32" rx="3" ry="2.5" fill="#c9a227" opacity=".5"/><ellipse cx="22" cy="20" rx="5" ry="7" fill="#e9c46a"/><ellipse cx="22" cy="20" rx="3" ry="5" fill="#f4a261" opacity=".5"/><ellipse cx="58" cy="20" rx="5" ry="7" fill="#e9c46a"/><ellipse cx="58" cy="20" rx="3" ry="5" fill="#f4a261" opacity=".5"/><rect x="33" y="10" width="4" height="8" rx="2" fill="#c9a227"/><rect x="43" y="10" width="4" height="8" rx="2" fill="#c9a227"/><circle cx="35" cy="10" r="3" fill="#c9a227"/><circle cx="45" cy="10" r="3" fill="#c9a227"/><ellipse cx="35" cy="38" rx="2.5" ry="1.5" fill="#c9a227"/><ellipse cx="45" cy="38" rx="2.5" ry="1.5" fill="#c9a227"/><rect x="23" y="24" width="13" height="8" rx="3" fill="#111"/><rect x="44" y="24" width="13" height="8" rx="3" fill="#111"/><line x1="36" y1="28" x2="44" y2="28" stroke="#555" stroke-width="1.5"/><line x1="23" y1="28" x2="19" y2="26" stroke="#555" stroke-width="1.5"/><line x1="57" y1="28" x2="61" y2="26" stroke="#555" stroke-width="1.5"/><rect x="25" y="26" width="4" height="2" rx="1" fill="#fff" opacity=".3"/><rect x="46" y="26" width="4" height="2" rx="1" fill="#fff" opacity=".3"/></svg>`,
+  moose:   `<svg viewBox="0 0 80 80" width="100%" height="100%"><path d="M28 18 Q20 10 15 5 Q18 8 22 12 Q18 6 20 2 Q22 6 24 10 Q22 5 25 3 Q26 7 25 12" stroke="#8B5E3C" stroke-width="3" fill="none" stroke-linecap="round"/><path d="M52 18 Q60 10 65 5 Q62 8 58 12 Q62 6 60 2 Q58 6 56 10 Q58 5 55 3 Q54 7 55 12" stroke="#8B5E3C" stroke-width="3" fill="none" stroke-linecap="round"/><ellipse cx="22" cy="25" rx="6" ry="8" fill="#a0724a"/><ellipse cx="22" cy="25" rx="4" ry="6" fill="#d4a574" opacity=".6"/><ellipse cx="58" cy="25" rx="6" ry="8" fill="#a0724a"/><ellipse cx="58" cy="25" rx="4" ry="6" fill="#d4a574" opacity=".6"/><ellipse cx="40" cy="32" rx="20" ry="20" fill="#a0724a"/><ellipse cx="40" cy="42" rx="10" ry="7" fill="#8B5E3C"/><ellipse cx="37" cy="43" rx="2" ry="1.5" fill="#5a3a20"/><ellipse cx="43" cy="43" rx="2" ry="1.5" fill="#5a3a20"/><rect x="24" y="26" width="13" height="8" rx="3" fill="#111"/><rect x="43" y="26" width="13" height="8" rx="3" fill="#111"/><line x1="37" y1="30" x2="43" y2="30" stroke="#555" stroke-width="1.5"/><line x1="24" y1="30" x2="20" y2="28" stroke="#555" stroke-width="1.5"/><line x1="56" y1="30" x2="60" y2="28" stroke="#555" stroke-width="1.5"/><rect x="26" y="28" width="4" height="2" rx="1" fill="#fff" opacity=".3"/><rect x="45" y="28" width="4" height="2" rx="1" fill="#fff" opacity=".3"/></svg>`,
+  cat:     `<svg viewBox="0 0 80 80" width="100%" height="100%"><polygon points="20,28 14,10 30,22" fill="#e07b9a"/><polygon points="22,27 17,13 29,22" fill="#f4b8cc"/><polygon points="60,28 66,10 50,22" fill="#e07b9a"/><polygon points="58,27 63,13 51,22" fill="#f4b8cc"/><ellipse cx="40" cy="35" rx="22" ry="22" fill="#e07b9a"/><ellipse cx="40" cy="37" rx="12" ry="10" fill="#f4b8cc" opacity=".5"/><polygon points="40,37 37,34 43,34" fill="#d45c7a"/><path d="M37 37 Q40 41 43 37" stroke="#d45c7a" stroke-width="1.5" fill="none"/><line x1="20" y1="33" x2="34" y2="36" stroke="#d45c7a" stroke-width="1" opacity=".7"/><line x1="20" y1="37" x2="34" y2="37" stroke="#d45c7a" stroke-width="1" opacity=".7"/><line x1="60" y1="33" x2="46" y2="36" stroke="#d45c7a" stroke-width="1" opacity=".7"/><line x1="60" y1="37" x2="46" y2="37" stroke="#d45c7a" stroke-width="1" opacity=".7"/><rect x="24" y="24" width="13" height="8" rx="3" fill="#111"/><rect x="43" y="24" width="13" height="8" rx="3" fill="#111"/><line x1="37" y1="28" x2="43" y2="28" stroke="#555" stroke-width="1.5"/><line x1="24" y1="28" x2="20" y2="26" stroke="#555" stroke-width="1.5"/><line x1="56" y1="28" x2="60" y2="26" stroke="#555" stroke-width="1.5"/><rect x="26" y="26" width="4" height="2" rx="1" fill="#fff" opacity=".3"/><rect x="45" y="26" width="4" height="2" rx="1" fill="#fff" opacity=".3"/></svg>`,
+};
+
+// ── Audio ──────────────────────────────────────────────────────────────────
+const audio = new Audio();
+audio.loop = true;
+audio.volume = 0.5;
+
+// ── Boot ───────────────────────────────────────────────────────────────────
+window.onload = () => {
+  buildThemeGrid();
+  buildFontList();
+  buildAvatarGrid();
+  buildVibeGrid();
+  updateMusicBar();
+  renderHeaderAvatar();
+
+  ['input-user','input-room'].forEach(id => {
+    document.getElementById(id).addEventListener('keydown', e => { if(e.key==='Enter') joinChat(); });
+  });
+  document.addEventListener('click', e => {
+    if(!document.getElementById('my-vibe-toggle').contains(e.target)) closeVibePicker();
+  });
+};
+
+// ── Login & Firestore wiring ───────────────────────────────────────────────
+window.joinChat = async () => {
+  const u = document.getElementById('input-user').value.trim();
+  const r = document.getElementById('input-room').value.trim();
+  const err = document.getElementById('login-error');
+  if (!u || !r) { err.textContent = 'Please fill in both fields.'; return; }
+  err.textContent = '';
+
+  state.username = u;
+  state.roomName = r;
+
+  document.getElementById('room-tag').textContent = (state.mode==='kiki' ? '# ' : '🏠 ') + r;
+  document.getElementById('login').style.display = 'none';
+  document.getElementById('chat').classList.add('active');
+  updateInputPlaceholder();
+  renderedIds.clear();
+  document.getElementById('messages').innerHTML = '';
+
+  // ── Listen to messages in real time ──
+  const msgsRef = collection(db, 'rooms', r, 'messages');
+  const q = query(msgsRef, orderBy('ts'));
+  unsubMessages = onSnapshot(q, snapshot => {
+    snapshot.docChanges().forEach(change => {
+      if (change.type === 'added') {
+        const d = change.doc.data();
+        const id = change.doc.id;
+        if (renderedIds.has(id)) return;
+        renderedIds.add(id);
+
+        if (d.type === 'system') {
+          renderSystemMsg(d.text);
+        } else {
+          const side = d.username === state.username ? 'me' : 'them';
+          renderMessage(side, d.text, d.username, d.avatar, d.ts?.toDate());
+        }
+      }
+    });
+  });
+
+  // ── Listen to friend's vibe ──
+  const presenceRef = doc(db, 'rooms', r, 'presence', 'users');
+  unsubPresence = onSnapshot(presenceRef, snap => {
+    if (!snap.exists()) return;
+    const data = snap.data();
+    // find the other user's vibe
+    Object.entries(data).forEach(([uname, info]) => {
+      if (uname !== state.username) {
+        document.getElementById('them-vibe-emoji').textContent = info.vibe || '—';
+      }
+    });
+  });
+
+  // Write my presence
+  await updatePresence();
+};
+
+window.leaveChat = () => {
+  if (unsubMessages) { unsubMessages(); unsubMessages = null; }
+  if (unsubPresence) { unsubPresence(); unsubPresence = null; }
+  renderedIds.clear();
+  document.getElementById('messages').innerHTML = '';
+  document.getElementById('chat').classList.remove('active');
+  document.getElementById('login').style.display = 'flex';
+  closeSettings();
+  if (state.playing) { audio.pause(); state.playing = false; updatePlayBtn(); }
+};
+
+async function updatePresence() {
+  if (!state.roomName || !state.username) return;
+  const presenceRef = doc(db, 'rooms', state.roomName, 'presence', 'users');
+  await setDoc(presenceRef, {
+    [state.username]: { vibe: state.myVibe, avatar: state.avatar }
+  }, { merge: true });
+}
+
+// ── Messaging ──────────────────────────────────────────────────────────────
+window.sendMsg = async () => {
+  const inp = document.getElementById('msg-input');
+  const text = inp.value.trim();
+
+  if (!text || !state.roomName) return;
+
+  inp.value = '';
+
+  try {
+    await addDoc(collection(db, 'rooms', state.roomName, 'messages'), {
+      type: 'chat',
+      text,
+      username: state.username,
+      avatar: state.avatar,
+      ts: serverTimestamp(),
+    });
+
+    console.log("Message sent");
+
+  } catch (err) {
+    console.error("Firestore error code:", err.code);
+console.error("Firestore error message:", err.message);
+console.error(err);
+    alert("Failed to send message");
+  }
+};
+
+async function sendSystemMsg(text) {
+  if (!state.roomName) return;
+  await addDoc(collection(db, 'rooms', state.roomName, 'messages'), {
+    type: 'system',
+    text,
+    ts: serverTimestamp(),
+  });
+}
+
+function renderMessage(side, text, username, avatarId, dateObj) {
+  const msgs = document.getElementById('messages');
+  const row = document.createElement('div');
+  row.className = 'msg-row ' + side;
+  const av = AVATARS[avatarId] || AVATARS['cat'];
+  const time = dateObj ? dateObj.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}) : '';
+  row.innerHTML = `
+    <div class="msg-avatar">${av}</div>
+    <div class="msg-col">
+      <div class="bubble ${side}">${escHtml(text)}</div>
+      <span class="msg-time">${username} · ${time}</span>
+    </div>`;
+  msgs.appendChild(row);
+  msgs.scrollTop = msgs.scrollHeight;
+}
+
+function renderSystemMsg(text) {
+  const msgs = document.getElementById('messages');
+  const div = document.createElement('div');
+  div.className = 'sys-msg';
+  div.innerHTML = `<span>${escHtml(text)}</span>`;
+  msgs.appendChild(div);
+  msgs.scrollTop = msgs.scrollHeight;
+}
+
+function escHtml(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+// ── Vibe ───────────────────────────────────────────────────────────────────
+function buildVibeGrid() {
+  const grid = document.getElementById('vibe-grid');
+  grid.innerHTML = '';
+  VIBES.forEach(v => {
+    const btn = document.createElement('button');
+    btn.className = 'vibe-btn' + (state.myVibe===v?' active':'');
+    btn.textContent = v;
+    btn.onclick = e => { e.stopPropagation(); changeVibe(v); };
+    grid.appendChild(btn);
+  });
+}
+
+window.toggleVibePicker = () => {
+  state.vibeOpen = !state.vibeOpen;
+  document.getElementById('vibe-picker').classList.toggle('open', state.vibeOpen);
+};
+function closeVibePicker() {
+  state.vibeOpen = false;
+  document.getElementById('vibe-picker').classList.remove('open');
+}
+
+async function changeVibe(v) {
+  state.myVibe = v;
+  document.getElementById('my-vibe-emoji').textContent = v;
+  buildVibeGrid();
+  closeVibePicker();
+  await updatePresence();
+  await sendSystemMsg(`${state.username} switched vibe to ${v}`);
+}
+
+// ── Music ──────────────────────────────────────────────────────────────────
+window.togglePlay = () => {
+  if (state.playing) {
+    audio.pause(); state.playing = false;
+  } else {
+    if (!audio.src || audio.src !== TRACKS[state.trackIdx].url) audio.src = TRACKS[state.trackIdx].url;
+    audio.play().catch(()=>{});
+    state.playing = true;
+  }
+  updatePlayBtn(); updateMusicBar();
+};
+window.prevTrack = () => changeTrack((state.trackIdx - 1 + TRACKS.length) % TRACKS.length);
+window.nextTrack = () => changeTrack((state.trackIdx + 1) % TRACKS.length);
+function changeTrack(idx) {
+  state.trackIdx = idx;
+  audio.src = TRACKS[idx].url;
+  if (state.playing) audio.play().catch(()=>{});
+  updateMusicBar();
+}
+window.setVolume = v => { audio.volume = v; };
+function updatePlayBtn() { document.getElementById('play-btn').textContent = state.playing ? '⏸' : '▶'; }
+function updateMusicBar() {
+  const t = TRACKS[state.trackIdx];
+  document.getElementById('music-emoji').textContent = t.emoji;
+  document.getElementById('music-label').textContent = (state.playing ? '♪ ' : '') + t.label;
+  updatePlayBtn();
+}
+
+// ── Settings ───────────────────────────────────────────────────────────────
+window.openSettings  = () => document.getElementById('overlay').classList.add('open');
+window.closeSettings = () => document.getElementById('overlay').classList.remove('open');
+
+function buildThemeGrid() {
+  const grid = document.getElementById('theme-grid');
+  grid.innerHTML = '';
+  THEMES.forEach(th => {
+    const btn = document.createElement('button');
+    btn.className = 'opt-btn' + (state.theme===th.id?' active':'');
+    btn.textContent = th.emoji + ' ' + th.name;
+    btn.onclick = () => setTheme(th.id);
+    grid.appendChild(btn);
+  });
+}
+function buildFontList() {
+  const list = document.getElementById('font-list');
+  list.innerHTML = '';
+  FONTS.forEach(f => {
+    const btn = document.createElement('button');
+    btn.className = 'font-btn' + (state.font===f.id?' active':'');
+    btn.style.fontFamily = f.css;
+    btn.textContent = f.name;
+    btn.onclick = () => setFont(f.id, f.css);
+    list.appendChild(btn);
+  });
+}
+function buildAvatarGrid() {
+  const grid = document.getElementById('avatar-grid');
+  grid.innerHTML = '';
+  Object.entries(AVATARS).forEach(([id, svg]) => {
+    const btn = document.createElement('button');
+    btn.className = 'avatar-btn' + (state.avatar===id?' active':'');
+    btn.innerHTML = `<div class="avatar-preview">${svg}</div><span>${id}</span>`;
+    btn.onclick = () => setAvatar(id);
+    grid.appendChild(btn);
+  });
+}
+
+window.setTheme = id => {
+  state.theme = id;
+  document.body.className = document.body.className.replace(/theme-\w+/, 'theme-' + id);
+  buildThemeGrid();
+};
+window.setFont = (id, css) => {
+  state.font = id;
+  document.body.style.fontFamily = css;
+  document.body.className = document.body.className.replace(/font-\w+/, '') + ' font-' + id;
+  buildFontList();
+};
+window.setAvatar = id => {
+  state.avatar = id;
+  renderHeaderAvatar();
+  buildAvatarGrid();
+  document.querySelectorAll('.msg-avatar').forEach(el => el.innerHTML = AVATARS[id]);
+};
+window.setMode = mode => {
+  state.mode = mode;
+  document.body.className = document.body.className.replace(/mode-\w+/, 'mode-' + mode);
+  const card = document.querySelector('.login-card');
+  if (mode === 'kiki') {
+    card.classList.add('kiki'); card.classList.remove('bouba');
+    document.querySelector('.kiki-corner').style.display = '';
+    const bb = document.querySelector('.bouba-bubble');
+    if (bb) bb.style.display = 'none';
+    document.querySelector('.join-btn').textContent = 'Enter Chat →';
+    document.querySelector('.login-title').textContent = 'COKE & SPRITE';
+  } else {
+    card.classList.add('bouba'); card.classList.remove('kiki');
+    document.querySelector('.kiki-corner').style.display = 'none';
+    let bb = document.querySelector('.bouba-bubble');
+    if (!bb) { bb = document.createElement('div'); bb.className = 'bouba-bubble'; bb.textContent = '💬'; card.insertBefore(bb, card.firstChild); }
+    else bb.style.display = '';
+    document.querySelector('.join-btn').textContent = 'Join Chat 🚀';
+    document.querySelector('.login-title').textContent = 'Coke & Sprite ✨';
+  }
+  if (state.roomName) document.getElementById('room-tag').textContent = (mode==='kiki'?'# ':'🏠 ') + state.roomName;
+  document.querySelector('.send-btn').textContent = mode==='kiki' ? 'Send →' : 'Send 💬';
+  updateInputPlaceholder();
+  document.querySelector('.leave-btn').textContent = mode==='kiki' ? '← Leave Room' : '🚪 Leave Room';
+  document.getElementById('panel-badge').textContent = mode==='kiki' ? 'SETTINGS' : '⚙ Settings';
+  document.getElementById('btn-kiki').classList.toggle('active', mode==='kiki');
+  document.getElementById('btn-bouba').classList.toggle('active', mode==='bouba');
+};
+
+function updateInputPlaceholder() {
+  document.getElementById('msg-input').placeholder = state.mode==='kiki' ? 'type a message...' : 'say something nice ✨';
+}
+function renderHeaderAvatar() {
+  document.getElementById('header-avatar').innerHTML = AVATARS[state.avatar];
+}
+</script>
+</body>
+</html>
