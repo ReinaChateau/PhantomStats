@@ -1,0 +1,1206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>The Safe Space</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@300;400;600;700&family=Playfair+Display:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #ffffff;
+    --ink: #111111;
+    --soft: #f5f5f0;
+    --border: #111111;
+    --radius: 20px;
+    --shadow: 2px 4px 0px #111111;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Nunito', sans-serif;
+    background: var(--bg);
+    color: var(--ink);
+    height: 100dvh;
+    overflow: hidden;
+    user-select: none;
+  }
+
+  /* ===================== LOGIN ===================== */
+  #login-screen {
+    position: fixed; inset: 0;
+    display: flex; align-items: center; justify-content: center;
+    flex-direction: column; gap: 24px;
+    background: #fff;
+    z-index: 1000;
+    transition: opacity 0.6s ease;
+  }
+  #login-screen.hidden { opacity: 0; pointer-events: none; }
+
+  .login-card {
+    border: 2px solid var(--border);
+    border-radius: 32px;
+    padding: 48px 40px;
+    max-width: 360px;
+    width: 90%;
+    text-align: center;
+    box-shadow: 6px 6px 0 var(--ink);
+  }
+  .login-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 2rem;
+    font-weight: 600;
+    margin-bottom: 6px;
+  }
+  .login-sub {
+    font-size: 0.9rem;
+    color: #666;
+    margin-bottom: 32px;
+  }
+  .login-input {
+    width: 100%;
+    border: 2px solid var(--ink);
+    border-radius: 50px;
+    padding: 14px 22px;
+    font-family: 'Nunito', sans-serif;
+    font-size: 1rem;
+    outline: none;
+    background: #fff;
+    transition: box-shadow 0.2s;
+  }
+  .login-input:focus { box-shadow: 3px 3px 0 var(--ink); }
+  .login-btn {
+    width: 100%;
+    margin-top: 16px;
+    border: 2px solid var(--ink);
+    border-radius: 50px;
+    padding: 14px;
+    font-family: 'Nunito', sans-serif;
+    font-size: 1rem;
+    font-weight: 700;
+    background: var(--ink);
+    color: #fff;
+    cursor: pointer;
+    transition: transform 0.1s, box-shadow 0.1s;
+    box-shadow: 3px 3px 0 #555;
+  }
+  .login-btn:hover { transform: translate(-1px,-1px); box-shadow: 4px 4px 0 #555; }
+  .login-btn:active { transform: translate(1px,1px); box-shadow: 1px 1px 0 #555; }
+  .login-error { color: #c00; font-size: 0.85rem; min-height: 18px; }
+
+  /* ===================== ROOM ===================== */
+  #room {
+    position: relative;
+    width: 100%;
+    height: 100dvh;
+    overflow: hidden;
+  }
+
+  #room-svg {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+  }
+
+  /* Greeting */
+  #greeting {
+    position: absolute;
+    top: 20px; left: 50%;
+    transform: translateX(-50%);
+    font-family: 'Playfair Display', serif;
+    font-size: 1.1rem;
+    font-style: italic;
+    color: #555;
+    white-space: nowrap;
+    pointer-events: none;
+  }
+
+  /* ===================== MENU ===================== */
+  #menu {
+    position: fixed;
+    bottom: 24px; right: 24px;
+    display: flex; flex-direction: column; align-items: flex-end; gap: 10px;
+    z-index: 100;
+  }
+  .menu-options {
+    display: flex; flex-direction: column; gap: 8px; align-items: flex-end;
+    transition: opacity 0.3s, transform 0.3s;
+    opacity: 0; transform: translateY(10px);
+    pointer-events: none;
+  }
+  .menu-options.open { opacity: 1; transform: translateY(0); pointer-events: all; }
+  .menu-btn {
+    border: 2px solid var(--ink);
+    border-radius: 50px;
+    padding: 10px 20px;
+    font-family: 'Nunito', sans-serif;
+    font-size: 0.9rem;
+    font-weight: 700;
+    background: #fff;
+    cursor: pointer;
+    box-shadow: 2px 2px 0 var(--ink);
+    transition: transform 0.1s, box-shadow 0.1s, background 0.2s;
+    white-space: nowrap;
+  }
+  .menu-btn:hover, .menu-btn.active {
+    background: var(--ink); color: #fff;
+    transform: translate(-1px,-1px); box-shadow: 3px 3px 0 #555;
+  }
+  .menu-toggle {
+    width: 52px; height: 52px;
+    border: 2px solid var(--ink);
+    border-radius: 50%;
+    background: #fff;
+    cursor: pointer;
+    font-size: 1.4rem;
+    box-shadow: 3px 3px 0 var(--ink);
+    display: flex; align-items: center; justify-content: center;
+    transition: transform 0.2s, background 0.2s;
+  }
+  .menu-toggle:hover { background: var(--ink); color: #fff; }
+  .menu-toggle.open { background: var(--ink); color: #fff; transform: rotate(45deg); }
+
+  /* ===================== PANELS ===================== */
+  .panel {
+    position: fixed;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%) scale(0.92);
+    background: #fff;
+    border: 2px solid var(--ink);
+    border-radius: 28px;
+    box-shadow: 6px 6px 0 var(--ink);
+    width: min(520px, 92vw);
+    max-height: 80dvh;
+    display: flex; flex-direction: column;
+    z-index: 200;
+    opacity: 0; pointer-events: none;
+    transition: opacity 0.3s, transform 0.3s;
+  }
+  .panel.open { opacity: 1; pointer-events: all; transform: translate(-50%, -50%) scale(1); }
+
+  .panel-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 20px 24px 14px;
+    border-bottom: 2px solid var(--ink);
+    flex-shrink: 0;
+  }
+  .panel-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.4rem; font-weight: 600;
+  }
+  .panel-close {
+    width: 34px; height: 34px;
+    border: 2px solid var(--ink);
+    border-radius: 50%;
+    background: #fff;
+    cursor: pointer;
+    font-size: 1rem;
+    display: flex; align-items: center; justify-content: center;
+    transition: background 0.15s;
+  }
+  .panel-close:hover { background: var(--ink); color: #fff; }
+
+  .panel-body {
+    padding: 20px 24px;
+    overflow-y: auto;
+    flex: 1;
+  }
+
+  /* shared input styles */
+  .inp {
+    width: 100%;
+    border: 2px solid var(--ink);
+    border-radius: 50px;
+    padding: 10px 18px;
+    font-family: 'Nunito', sans-serif;
+    font-size: 0.9rem;
+    outline: none;
+    background: #fff;
+  }
+  .inp:focus { box-shadow: 2px 2px 0 var(--ink); }
+  textarea.inp {
+    border-radius: 16px;
+    resize: vertical;
+    min-height: 80px;
+    padding: 12px 16px;
+    line-height: 1.5;
+  }
+  .btn-sm {
+    border: 2px solid var(--ink);
+    border-radius: 50px;
+    padding: 8px 18px;
+    font-family: 'Nunito', sans-serif;
+    font-size: 0.85rem;
+    font-weight: 700;
+    background: var(--ink); color: #fff;
+    cursor: pointer;
+    box-shadow: 2px 2px 0 #555;
+    transition: transform 0.1s, box-shadow 0.1s;
+  }
+  .btn-sm:hover { transform: translate(-1px,-1px); box-shadow: 3px 3px 0 #555; }
+  .btn-sm.ghost { background: #fff; color: var(--ink); }
+  .btn-sm.ghost:hover { background: var(--soft); }
+
+  /* ===================== QUOTES ===================== */
+  .folder-row {
+    display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px;
+  }
+  .folder-chip {
+    border: 2px solid var(--ink);
+    border-radius: 50px;
+    padding: 5px 14px;
+    font-size: 0.82rem; font-weight: 700;
+    cursor: pointer; background: #fff;
+    transition: background 0.15s;
+  }
+  .folder-chip.active, .folder-chip:hover { background: var(--ink); color: #fff; }
+
+  .quote-item {
+    border: 2px solid var(--ink);
+    border-radius: 16px;
+    padding: 12px 16px;
+    margin-bottom: 10px;
+    font-size: 0.9rem;
+    line-height: 1.5;
+    position: relative;
+  }
+  .quote-item .q-author { font-style: italic; color: #666; font-size: 0.82rem; margin-top: 4px; }
+  .quote-item .q-actions { display: flex; gap: 6px; margin-top: 8px; }
+  .q-del {
+    border: 2px solid #ccc; border-radius: 50px; padding: 3px 10px;
+    font-size: 0.75rem; cursor: pointer; background: #fff; color: #999;
+  }
+  .q-del:hover { border-color: var(--ink); color: var(--ink); }
+  .q-pin {
+    border: 2px solid #ccc; border-radius: 50px; padding: 3px 10px;
+    font-size: 0.75rem; cursor: pointer; background: #fff; color: #999;
+  }
+  .q-pin:hover { border-color: var(--ink); color: var(--ink); }
+
+  .add-quote-form { display: flex; flex-direction: column; gap: 8px; margin-bottom: 20px; }
+  .add-quote-form .row { display: flex; gap: 8px; }
+
+  /* ===================== NOTES ===================== */
+  .sticky-note {
+    position: fixed;
+    width: 160px;
+    min-height: 120px;
+    border: 2px solid var(--ink);
+    border-radius: 12px;
+    padding: 10px 12px;
+    font-family: 'Nunito', sans-serif;
+    font-size: 0.85rem;
+    background: #fff;
+    box-shadow: 3px 3px 0 var(--ink);
+    cursor: move;
+    z-index: 150;
+    resize: none;
+    overflow: hidden;
+    word-break: break-word;
+  }
+  .sticky-note:focus { outline: none; box-shadow: 4px 4px 0 var(--ink); }
+  .sticky-del {
+    position: absolute; top: 6px; right: 8px;
+    border: none; background: none;
+    font-size: 1rem; cursor: pointer; color: #bbb; line-height: 1;
+  }
+  .sticky-del:hover { color: var(--ink); }
+
+  .notes-list { display: flex; flex-direction: column; gap: 8px; }
+  .note-list-item {
+    border: 2px solid var(--ink);
+    border-radius: 14px;
+    padding: 10px 14px;
+    font-size: 0.88rem;
+    display: flex; justify-content: space-between; align-items: flex-start;
+    gap: 10px;
+  }
+  .note-list-item span { flex: 1; white-space: pre-wrap; word-break: break-word; }
+
+  /* ===================== MUSIC ===================== */
+  .music-track {
+    border: 2px solid var(--ink);
+    border-radius: 16px;
+    padding: 12px 16px;
+    margin-bottom: 10px;
+    display: flex; align-items: center; justify-content: space-between; gap: 10px;
+  }
+  .music-track .t-name { font-weight: 700; font-size: 0.9rem; }
+  .music-track .t-sub { font-size: 0.78rem; color: #888; }
+  .track-btns { display: flex; gap: 6px; }
+  .t-btn {
+    border: 2px solid var(--ink); border-radius: 50%;
+    width: 32px; height: 32px;
+    background: #fff; cursor: pointer; font-size: 0.85rem;
+    display: flex; align-items: center; justify-content: center;
+    transition: background 0.15s;
+  }
+  .t-btn:hover, .t-btn.playing { background: var(--ink); color: #fff; }
+  .add-track-form { display: flex; flex-direction: column; gap: 8px; margin-bottom: 20px; }
+
+  #yt-player { position: fixed; bottom: -9999px; }
+
+  /* ===================== PINNED QUOTES ===================== */
+  .pinned-quote {
+    position: fixed;
+    border: 2px solid var(--ink);
+    border-radius: 12px;
+    padding: 10px 16px;
+    background: #fff;
+    font-family: 'Playfair Display', serif;
+    font-style: italic;
+    font-size: 0.85rem;
+    max-width: 200px;
+    box-shadow: 3px 3px 0 var(--ink);
+    cursor: move;
+    z-index: 140;
+    line-height: 1.4;
+  }
+  .pinned-quote .pq-del {
+    display: block; text-align: right;
+    border: none; background: none; color: #bbb; cursor: pointer; font-size: 0.9rem;
+    margin-top: 4px;
+  }
+  .pinned-quote .pq-del:hover { color: var(--ink); }
+
+  /* overlay */
+  #overlay {
+    position: fixed; inset: 0; background: rgba(0,0,0,0.15);
+    z-index: 190; display: none;
+  }
+  #overlay.show { display: block; }
+
+  /* username badge */
+  #user-badge {
+    position: fixed; top: 16px; left: 16px;
+    border: 2px solid var(--ink);
+    border-radius: 50px;
+    padding: 6px 16px;
+    font-size: 0.82rem; font-weight: 700;
+    background: #fff;
+    box-shadow: 2px 2px 0 var(--ink);
+    z-index: 10;
+    cursor: pointer;
+  }
+  #user-badge:hover { background: var(--soft); }
+
+  /* scrollbar */
+  .panel-body::-webkit-scrollbar { width: 6px; }
+  .panel-body::-webkit-scrollbar-thumb { background: #ddd; border-radius: 3px; }
+
+  /* mobile tweaks */
+  @media (max-width: 480px) {
+    .panel { width: 96vw; max-height: 85dvh; }
+    .panel-body { padding: 16px 16px; }
+    #greeting { font-size: 0.9rem; top: 16px; }
+    .sticky-note { width: 130px; font-size: 0.78rem; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ===== LOGIN ===== -->
+<div id="login-screen">
+  <div class="login-card">
+    <div class="login-title">The Safe Space</div>
+    <div class="login-sub">A quiet corner, just for you.</div>
+    <input class="login-input" type="text" id="username-input" placeholder="Your name…" maxlength="30" autocomplete="off" />
+    <button class="login-btn" id="login-btn">Enter →</button>
+    <div class="login-error" id="login-error"></div>
+  </div>
+</div>
+
+<!-- ===== ROOM ===== -->
+<div id="room" style="display:none">
+  <div id="greeting"></div>
+  <div id="user-badge">👤 <span id="badge-name"></span></div>
+
+  <!-- SVG ROOM ILLUSTRATION -->
+  <svg id="room-svg" viewBox="0 0 800 600" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg">
+
+
+
+    <!-- back wall line -->
+    <line x1="60" y1="280" x2="740" y2="280" stroke="#e8e8e8" stroke-width="1.5"/>
+
+    <!--
+    ============================================================
+    IMAGE PLACEHOLDERS
+    ============================================================
+    To use your own images, place your files in the same folder
+    as this HTML file and update the filenames below.
+
+    BOOKSHELF IMAGE  → replace "bookshelf.png" with your filename
+    TABLE IMAGE      → replace "table.png" with your filename
+
+    Supported formats: .png  .jpg  .jpeg  .webp  .svg
+    The image will be stretched to fit the bounding box shown.
+    Set image-placeholder-show="true" on either <image> tag to
+    hide the SVG drawing behind it (set opacity to 1).
+    ============================================================
+    -->
+
+    <!-- BOOKSHELF PHOTO SLOT: x=30 y=140 width=175 height=330 -->
+    <!-- To activate: change opacity="0" to opacity="1" and set href="your-bookshelf-image.png" -->
+    <image id="img-bookshelf" href="bookshelf.png"
+           x="30" y="140" width="175" height="330"
+           preserveAspectRatio="xMidYMid meet"
+           opacity="0" style="pointer-events:none"/>
+
+    <!-- ===== BOOKSHELF 3D (facing viewer, left side) ===== -->
+    <!--
+      3-point perspective bookshelf: front face + right side face + top face.
+      Front face: x=40..175, y=155..460
+      Right side: parallelogram showing depth (skewed 20px right, 10px up)
+      Top cap: parallelogram
+    -->
+    <g id="bookshelf">
+      <!-- === STRUCTURE === -->
+      <!-- back panel (right side depth face) -->
+      <polygon points="175,155 195,145 195,450 175,460" fill="none" stroke="#111" stroke-width="1.8"/>
+      <!-- top face -->
+      <polygon points="40,155 175,155 195,145 60,145" fill="none" stroke="#111" stroke-width="1.8"/>
+      <!-- front face outer frame -->
+      <rect x="40" y="155" width="135" height="305" fill="none" stroke="#111" stroke-width="2"/>
+      <!-- bottom panel thickness -->
+      <polygon points="40,460 175,460 195,450 60,450" fill="none" stroke="#111" stroke-width="1.5"/>
+
+      <!-- === SHELVES (front) === -->
+      <!-- shelf dividers front -->
+      <line x1="40" y1="228" x2="175" y2="228" stroke="#111" stroke-width="2"/>
+      <line x1="40" y1="300" x2="175" y2="300" stroke="#111" stroke-width="2"/>
+      <line x1="40" y1="372" x2="175" y2="372" stroke="#111" stroke-width="2"/>
+
+      <!-- shelf dividers right-side depth lines -->
+      <line x1="175" y1="228" x2="195" y2="218" stroke="#111" stroke-width="1.5"/>
+      <line x1="175" y1="300" x2="195" y2="290" stroke="#111" stroke-width="1.5"/>
+      <line x1="175" y1="372" x2="195" y2="362" stroke="#111" stroke-width="1.5"/>
+
+      <!-- === ROW 1 BOOKS (y 163..224) === -->
+      <rect x="48"  y="168" width="13" height="56" rx="2" fill="none" stroke="#111" stroke-width="1.5"/>
+      <rect x="63"  y="172" width="17" height="52" rx="2" fill="none" stroke="#111" stroke-width="1.5"/>
+      <rect x="82"  y="165" width="11" height="59" rx="2" fill="none" stroke="#111" stroke-width="1.5"/>
+      <rect x="95"  y="170" width="19" height="54" rx="2" fill="none" stroke="#111" stroke-width="1.5"/>
+      <rect x="116" y="174" width="14" height="50" rx="2" fill="none" stroke="#111" stroke-width="1.5"/>
+      <rect x="132" y="167" width="15" height="57" rx="2" fill="none" stroke="#111" stroke-width="1.5"/>
+      <rect x="149" y="171" width="16" height="53" rx="2" fill="none" stroke="#111" stroke-width="1.5"/>
+      <!-- book top depth edges row 1 -->
+      <line x1="48"  y1="168" x2="51"  y2="165" stroke="#111" stroke-width="1"/>
+      <line x1="61"  y1="168" x2="64"  y2="165" stroke="#111" stroke-width="1"/>
+      <line x1="63"  y1="172" x2="66"  y2="169" stroke="#111" stroke-width="1"/>
+      <line x1="80"  y1="172" x2="83"  y2="169" stroke="#111" stroke-width="1"/>
+
+      <!-- === ROW 2 BOOKS (y 236..296) === -->
+      <rect x="48"  y="238" width="15" height="57" rx="2" fill="none" stroke="#111" stroke-width="1.5"/>
+      <rect x="65"  y="242" width="13" height="53" rx="2" fill="none" stroke="#111" stroke-width="1.5"/>
+      <rect x="80"  y="236" width="19" height="59" rx="2" fill="none" stroke="#111" stroke-width="1.5"/>
+      <rect x="101" y="240" width="14" height="55" rx="2" fill="none" stroke="#111" stroke-width="1.5"/>
+      <rect x="117" y="238" width="17" height="57" rx="2" fill="none" stroke="#111" stroke-width="1.5"/>
+      <rect x="136" y="242" width="12" height="53" rx="2" fill="none" stroke="#111" stroke-width="1.5"/>
+      <rect x="150" y="238" width="15" height="57" rx="2" fill="none" stroke="#111" stroke-width="1.5"/>
+
+      <!-- === ROW 3 BOOKS (y 308..368) === -->
+      <rect x="48"  y="308" width="17" height="58" rx="2" fill="none" stroke="#111" stroke-width="1.5"/>
+      <rect x="67"  y="312" width="13" height="54" rx="2" fill="none" stroke="#111" stroke-width="1.5"/>
+      <rect x="82"  y="306" width="21" height="60" rx="2" fill="none" stroke="#111" stroke-width="1.5"/>
+      <rect x="105" y="310" width="15" height="56" rx="2" fill="none" stroke="#111" stroke-width="1.5"/>
+      <rect x="122" y="308" width="11" height="58" rx="2" fill="none" stroke="#111" stroke-width="1.5"/>
+      <rect x="135" y="311" width="18" height="55" rx="2" fill="none" stroke="#111" stroke-width="1.5"/>
+      <rect x="155" y="308" width="13" height="58" rx="2" fill="none" stroke="#111" stroke-width="1.5"/>
+
+      <!-- === ROW 4 / BOTTOM (y 380..455) misc + plant === -->
+      <rect x="48"  y="380" width="14" height="52" rx="2" fill="none" stroke="#111" stroke-width="1.5"/>
+      <rect x="64"  y="383" width="17" height="49" rx="2" fill="none" stroke="#111" stroke-width="1.5"/>
+      <rect x="83"  y="380" width="12" height="52" rx="2" fill="none" stroke="#111" stroke-width="1.5"/>
+      <!-- small pot + plant -->
+      <rect x="120" y="418" width="24" height="16" rx="3" fill="none" stroke="#111" stroke-width="1.5"/>
+      <ellipse cx="132" cy="416" rx="11" ry="13" fill="none" stroke="#111" stroke-width="1.5"/>
+      <line x1="132" y1="409" x2="132" y2="418" stroke="#111" stroke-width="1.2"/>
+      <path d="M125,414 Q120,408 123,403" fill="none" stroke="#111" stroke-width="1.2"/>
+      <path d="M139,412 Q144,406 141,401" fill="none" stroke="#111" stroke-width="1.2"/>
+    </g>
+
+    <!-- ===== SPECIAL BOOKS (for animation) ===== -->
+    <g id="book-quotes" class="special-book" opacity="0">
+      <rect x="0" y="0" width="60" height="90" rx="6" fill="none" stroke="#111" stroke-width="2.5"/>
+      <line x1="10" y1="20" x2="50" y2="20" stroke="#111" stroke-width="1.5"/>
+      <line x1="10" y1="30" x2="50" y2="30" stroke="#111" stroke-width="1.5"/>
+      <line x1="10" y1="40" x2="40" y2="40" stroke="#111" stroke-width="1.5"/>
+      <text x="30" y="70" text-anchor="middle" font-family="Playfair Display,serif" font-size="9" fill="#111">"Quotes"</text>
+    </g>
+    <g id="book-notes" class="special-book" opacity="0">
+      <rect x="0" y="0" width="60" height="90" rx="6" fill="none" stroke="#111" stroke-width="2.5"/>
+      <line x1="10" y1="20" x2="50" y2="20" stroke="#111" stroke-width="1" stroke-dasharray="3,3"/>
+      <line x1="10" y1="32" x2="50" y2="32" stroke="#111" stroke-width="1" stroke-dasharray="3,3"/>
+      <line x1="10" y1="44" x2="50" y2="44" stroke="#111" stroke-width="1" stroke-dasharray="3,3"/>
+      <line x1="10" y1="56" x2="50" y2="56" stroke="#111" stroke-width="1" stroke-dasharray="3,3"/>
+      <text x="30" y="76" text-anchor="middle" font-family="Playfair Display,serif" font-size="9" fill="#111">"Notes"</text>
+    </g>
+    <g id="book-music" class="special-book" opacity="0">
+      <rect x="0" y="0" width="60" height="90" rx="6" fill="none" stroke="#111" stroke-width="2.5"/>
+      <text x="30" y="38" text-anchor="middle" font-size="22" fill="#111">♪</text>
+      <text x="30" y="76" text-anchor="middle" font-family="Playfair Display,serif" font-size="9" fill="#111">"Music"</text>
+    </g>
+
+    <!-- ===== COFFEE TABLE ===== -->
+    <g id="table">
+      <!-- table top ellipse -->
+      <ellipse cx="460" cy="460" rx="140" ry="65" fill="none" stroke="#111" stroke-width="2.5"/>
+      <!-- table legs -->
+      <line x1="400" y1="460" x2="390" y2="530" stroke="#111" stroke-width="2"/>
+      <line x1="520" y1="460" x2="530" y2="530" stroke="#111" stroke-width="2"/>
+      <line x1="430" y1="520" x2="420" y2="545" stroke="#111" stroke-width="1.8"/>
+      <line x1="495" y1="520" x2="505" y2="545" stroke="#111" stroke-width="1.8"/>
+
+      <!-- coffee cup -->
+      <ellipse cx="460" cy="440" rx="18" ry="7" fill="none" stroke="#111" stroke-width="1.8"/>
+      <path d="M442,440 Q442,462 460,462 Q478,462 478,440" fill="none" stroke="#111" stroke-width="1.8"/>
+      <path d="M478,446 Q490,446 490,453 Q490,460 478,460" fill="none" stroke="#111" stroke-width="1.5"/>
+      <!-- steam -->
+      <path d="M454,430 Q451,424 454,418" fill="none" stroke="#aaa" stroke-width="1.5" stroke-linecap="round"/>
+      <path d="M460,427 Q457,421 460,415" fill="none" stroke="#aaa" stroke-width="1.5" stroke-linecap="round"/>
+      <path d="M466,430 Q463,424 466,418" fill="none" stroke="#aaa" stroke-width="1.5" stroke-linecap="round"/>
+    </g>
+
+    <!-- TABLE PHOTO SLOT: x=310 y=390 width=310 height=180 -->
+    <!-- To activate: change opacity="0" to opacity="1" and set href="your-table-image.png" -->
+    <image id="img-table" href="table.png"
+           x="310" y="390" width="310" height="180"
+           preserveAspectRatio="xMidYMid meet"
+           opacity="0" style="pointer-events:none"/>
+
+    <!-- book on table (when selected) -->
+    <g id="book-on-table" opacity="0">
+      <rect x="420" y="376" width="80" height="52" rx="6" fill="#fff" stroke="#111" stroke-width="2"/>
+      <text id="bot-label" x="460" y="407" text-anchor="middle" font-family="Playfair Display,serif" font-size="11" fill="#111">—</text>
+    </g>
+
+    <!-- ===== WINDOW / PICTURE on wall ===== -->
+    <g>
+      <rect x="340" y="100" width="140" height="110" rx="8" fill="none" stroke="#ccc" stroke-width="1.5"/>
+      <!-- window cross -->
+      <line x1="340" y1="155" x2="480" y2="155" stroke="#ddd" stroke-width="1.2"/>
+      <line x1="410" y1="100" x2="410" y2="210" stroke="#ddd" stroke-width="1.2"/>
+      <!-- small sun -->
+      <circle cx="370" cy="135" r="10" fill="none" stroke="#ddd" stroke-width="1.2"/>
+      <line x1="370" y1="120" x2="370" y2="115" stroke="#ddd" stroke-width="1"/>
+      <line x1="380" y1="125" x2="384" y2="121" stroke="#ddd" stroke-width="1"/>
+      <line x1="385" y1="135" x2="390" y2="135" stroke="#ddd" stroke-width="1"/>
+    </g>
+
+
+
+  </svg>
+
+  <!-- Menu -->
+  <div id="menu">
+    <div class="menu-options" id="menu-options">
+      <button class="menu-btn" data-mode="quotes">📖 Quotes</button>
+      <button class="menu-btn" data-mode="notes">📝 Notes</button>
+      <button class="menu-btn" data-mode="music">🎵 Music</button>
+    </div>
+    <button class="menu-toggle" id="menu-toggle">+</button>
+  </div>
+</div>
+
+<!-- overlay -->
+<div id="overlay" onclick="closeAllPanels()"></div>
+
+<!-- ===== PANEL: QUOTES ===== -->
+<div class="panel" id="panel-quotes">
+  <div class="panel-header">
+    <span class="panel-title">📖 Quotes</span>
+    <button class="panel-close" onclick="closePanel('quotes')">✕</button>
+  </div>
+  <div class="panel-body">
+    <!-- add form -->
+    <div class="add-quote-form">
+      <textarea class="inp" id="q-text" placeholder="Write your quote…" rows="3"></textarea>
+      <div class="row">
+        <input class="inp" id="q-author" placeholder="— Author (optional)" style="flex:1"/>
+        <input class="inp" id="q-folder" placeholder="📁 Folder" style="width:120px"/>
+      </div>
+      <div class="row">
+        <button class="btn-sm" onclick="addQuote()">Add Quote</button>
+      </div>
+    </div>
+    <!-- folders -->
+    <div class="folder-row" id="folder-row">
+      <span class="folder-chip active" data-folder="all" onclick="selectFolder(this,'all')">All</span>
+    </div>
+    <!-- quote list -->
+    <div id="quote-list"></div>
+  </div>
+</div>
+
+<!-- ===== PANEL: NOTES ===== -->
+<div class="panel" id="panel-notes">
+  <div class="panel-header">
+    <span class="panel-title">📝 Notes</span>
+    <button class="panel-close" onclick="closePanel('notes')">✕</button>
+  </div>
+  <div class="panel-body">
+    <div class="add-quote-form">
+      <textarea class="inp" id="note-text" placeholder="Jot something down…" rows="3"></textarea>
+      <button class="btn-sm" onclick="addNote()">Add Note</button>
+    </div>
+    <div class="notes-list" id="notes-list"></div>
+  </div>
+</div>
+
+<!-- ===== PANEL: MUSIC ===== -->
+<div class="panel" id="panel-music">
+  <div class="panel-header">
+    <span class="panel-title">🎵 Music</span>
+    <button class="panel-close" onclick="closePanel('music')">✕</button>
+  </div>
+  <div class="panel-body">
+    <div id="track-list"></div>
+  </div>
+</div>
+
+<!-- HTML5 Audio Player (hidden) -->
+<audio id="audio-player" loop style="display:none"></audio>
+
+<!-- ===== FIREBASE ===== -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-app.js";
+  import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-analytics.js";
+  import {
+    getFirestore, doc, setDoc, getDoc, updateDoc, collection, getDocs
+  } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyAa1Vkbhum-Xh9y_Zwz5RMHd3H6J6pLBlY",
+    authDomain: "life-7d79a.firebaseapp.com",
+    projectId: "life-7d79a",
+    storageBucket: "life-7d79a.firebasestorage.app",
+    messagingSenderId: "619049822813",
+    appId: "1:619049822813:web:f20a66602e57a601cdfbb4",
+    measurementId: "G-T5HN1WQCNS"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const analytics = getAnalytics(app);
+  const db = getFirestore(app);
+
+  window._db = db;
+  window._firestore = { doc, setDoc, getDoc, updateDoc, collection, getDocs };
+  window.dispatchEvent(new Event('firebase-ready'));
+</script>
+
+<script>
+// =========================================================
+// STATE
+// =========================================================
+let currentUser = null;
+let userData = { quotes: [], notes: [], stickyPositions: {}, pinnedPositions: {} };
+let currentFolder = 'all';
+let currentPlaying = null;
+let menuOpen = false;
+
+// =========================================================
+// FIREBASE HELPERS
+// =========================================================
+async function loadUser(username) {
+  const db = window._db;
+  const { doc, getDoc, setDoc } = window._firestore;
+  const ref = doc(db, 'users', username);
+  const snap = await getDoc(ref);
+  if (snap.exists()) {
+    const d = snap.data();
+    userData.quotes = d.quotes || [];
+    userData.notes = d.notes || [];
+    userData.stickyPositions = d.stickyPositions || {};
+    userData.pinnedPositions = d.pinnedPositions || {};
+  } else {
+    await setDoc(ref, { quotes: [], notes: [], stickyPositions: {}, pinnedPositions: {} });
+  }
+}
+
+async function saveUser() {
+  if (!currentUser) return;
+  const db = window._db;
+  const { doc, setDoc } = window._firestore;
+  await setDoc(doc(db, 'users', currentUser), {
+    quotes: userData.quotes,
+    notes: userData.notes,
+    stickyPositions: userData.stickyPositions,
+    pinnedPositions: userData.pinnedPositions
+  });
+}
+
+// =========================================================
+// LOGIN
+// =========================================================
+window.addEventListener('firebase-ready', () => {
+  document.getElementById('login-btn').addEventListener('click', doLogin);
+  document.getElementById('username-input').addEventListener('keydown', e => {
+    if (e.key === 'Enter') doLogin();
+  });
+});
+
+async function doLogin() {
+  const val = document.getElementById('username-input').value.trim();
+  if (!val) { document.getElementById('login-error').textContent = 'Please enter a name.'; return; }
+  document.getElementById('login-btn').textContent = 'Opening…';
+  try {
+    await loadUser(val);
+    currentUser = val;
+    document.getElementById('login-screen').classList.add('hidden');
+    document.getElementById('room').style.display = 'block';
+    document.getElementById('greeting').textContent = 'Welcome back, ' + val + '.';
+    document.getElementById('badge-name').textContent = val;
+    renderAll();
+    setTimeout(() => document.getElementById('login-screen').remove(), 700);
+  } catch(e) {
+    document.getElementById('login-error').textContent = 'Could not connect. Check your internet.';
+    document.getElementById('login-btn').textContent = 'Enter →';
+  }
+}
+
+document.getElementById('user-badge').addEventListener('click', () => {
+  if (confirm('Log out of "' + currentUser + '"?')) location.reload();
+});
+
+// =========================================================
+// MENU
+// =========================================================
+document.getElementById('menu-toggle').addEventListener('click', () => {
+  menuOpen = !menuOpen;
+  document.getElementById('menu-options').classList.toggle('open', menuOpen);
+  document.getElementById('menu-toggle').classList.toggle('open', menuOpen);
+  document.getElementById('menu-toggle').textContent = menuOpen ? '✕' : '+';
+});
+
+document.querySelectorAll('.menu-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const mode = btn.dataset.mode;
+    document.querySelectorAll('.menu-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    openPanel(mode);
+    menuOpen = false;
+    document.getElementById('menu-options').classList.remove('open');
+    document.getElementById('menu-toggle').classList.remove('open');
+    document.getElementById('menu-toggle').textContent = '+';
+    animateBook(mode);
+  });
+});
+
+// =========================================================
+// BOOK ANIMATION
+// =========================================================
+const bookStartPos = { quotes: {x:91,y:238}, notes: {x:74,y:308}, music: {x:91,y:312} };
+const tablePos = { x: 420, y: 376 };
+
+function animateBook(mode) {
+  // hide all special books
+  document.querySelectorAll('.special-book').forEach(b => { b.setAttribute('opacity','0'); });
+  const bookEl = document.getElementById('book-' + mode);
+  const bot = document.getElementById('book-on-table');
+  const label = document.getElementById('bot-label');
+  const labels = { quotes: '"Quotes"', notes: '"Notes"', music: '"Music"' };
+
+  const sp = bookStartPos[mode] || {x:95,y:245};
+  bookEl.setAttribute('transform', `translate(${sp.x},${sp.y})`);
+  bookEl.setAttribute('opacity','1');
+
+  // animate to table
+  let startTime = null;
+  const duration = 600;
+  const ex = tablePos.x, ey = tablePos.y;
+
+  function step(ts) {
+    if (!startTime) startTime = ts;
+    const p = Math.min((ts - startTime) / duration, 1);
+    const ease = 1 - Math.pow(1-p, 3);
+    const cx = sp.x + (ex - sp.x) * ease;
+    const cy = sp.y + (ey - sp.y) * ease;
+    bookEl.setAttribute('transform', `translate(${cx},${cy})`);
+    if (p < 1) requestAnimationFrame(step);
+    else {
+      bookEl.setAttribute('opacity','0');
+      label.textContent = labels[mode];
+      bot.setAttribute('opacity','1');
+    }
+  }
+  requestAnimationFrame(step);
+}
+
+// =========================================================
+// PANELS
+// =========================================================
+function openPanel(name) {
+  closeAllPanels(true);
+  const panel = document.getElementById('panel-' + name);
+  if (panel) {
+    panel.classList.add('open');
+    document.getElementById('overlay').classList.add('show');
+  }
+  if (name === 'quotes') renderQuotes();
+  if (name === 'notes') renderNotes();
+  if (name === 'music') renderTracks();
+}
+
+function closePanel(name) {
+  document.getElementById('panel-' + name).classList.remove('open');
+  document.getElementById('overlay').classList.remove('show');
+  document.querySelectorAll('.menu-btn').forEach(b => b.classList.remove('active'));
+}
+
+function closeAllPanels(keepOverlay) {
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('open'));
+  if (!keepOverlay) {
+    document.getElementById('overlay').classList.remove('show');
+    document.querySelectorAll('.menu-btn').forEach(b => b.classList.remove('active'));
+  }
+}
+
+// =========================================================
+// QUOTES
+// =========================================================
+function addQuote() {
+  const text = document.getElementById('q-text').value.trim();
+  if (!text) return;
+  const author = document.getElementById('q-author').value.trim();
+  const folder = document.getElementById('q-folder').value.trim() || 'General';
+  const q = { id: Date.now(), text, author, folder };
+  userData.quotes.push(q);
+  document.getElementById('q-text').value = '';
+  document.getElementById('q-author').value = '';
+  document.getElementById('q-folder').value = '';
+  saveUser();
+  renderQuotes();
+}
+window.addQuote = addQuote;
+
+function selectFolder(el, folder) {
+  currentFolder = folder;
+  document.querySelectorAll('.folder-chip').forEach(c => c.classList.remove('active'));
+  el.classList.add('active');
+  renderQuoteList();
+}
+window.selectFolder = selectFolder;
+
+function renderQuotes() {
+  // folders
+  const folders = ['all', ...new Set(userData.quotes.map(q => q.folder))];
+  const fr = document.getElementById('folder-row');
+  fr.innerHTML = '';
+  folders.forEach(f => {
+    const chip = document.createElement('span');
+    chip.className = 'folder-chip' + (f === currentFolder ? ' active' : '');
+    chip.dataset.folder = f;
+    chip.textContent = f === 'all' ? 'All' : f;
+    chip.onclick = () => selectFolder(chip, f);
+    fr.appendChild(chip);
+  });
+  renderQuoteList();
+}
+
+function renderQuoteList() {
+  const list = document.getElementById('quote-list');
+  const filtered = currentFolder === 'all' ? userData.quotes : userData.quotes.filter(q => q.folder === currentFolder);
+  list.innerHTML = '';
+  if (filtered.length === 0) {
+    list.innerHTML = '<p style="color:#aaa;font-size:0.85rem;text-align:center;margin-top:20px;">No quotes yet. Add one above!</p>';
+    return;
+  }
+  filtered.forEach(q => {
+    const div = document.createElement('div');
+    div.className = 'quote-item';
+    div.innerHTML = `
+      <div style="font-style:italic;">"${escHtml(q.text)}"</div>
+      ${q.author ? `<div class="q-author">— ${escHtml(q.author)}</div>` : ''}
+      <div class="q-actions">
+        <button class="q-pin" onclick="pinQuote(${q.id})">📌 Pin to room</button>
+        <button class="q-del" onclick="deleteQuote(${q.id})">✕ Delete</button>
+      </div>`;
+    list.appendChild(div);
+  });
+}
+
+function deleteQuote(id) {
+  userData.quotes = userData.quotes.filter(q => q.id !== id);
+  saveUser();
+  renderQuotes();
+}
+window.deleteQuote = deleteQuote;
+
+function pinQuote(id) {
+  const q = userData.quotes.find(x => x.id === id);
+  if (!q) return;
+  const existing = document.getElementById('pq-' + id);
+  if (existing) { existing.remove(); return; }
+  createPinnedQuote(q, null);
+}
+window.pinQuote = pinQuote;
+
+function createPinnedQuote(q, pos) {
+  const el = document.createElement('div');
+  el.className = 'pinned-quote';
+  el.id = 'pq-' + q.id;
+  const savedPos = userData.pinnedPositions[q.id] || pos || { top: 120 + Math.random()*100, left: 220 + Math.random()*200 };
+  el.style.top = savedPos.top + 'px';
+  el.style.left = savedPos.left + 'px';
+  el.innerHTML = `"${escHtml(q.text)}"${q.author ? '<br><small style="color:#888;font-style:normal;">— '+escHtml(q.author)+'</small>' : ''}<button class="pq-del" onclick="removePinnedQuote(${q.id})">✕</button>`;
+  document.getElementById('room').appendChild(el);
+  makeDraggable(el, (t,l) => {
+    userData.pinnedPositions[q.id] = { top: t, left: l };
+    saveUser();
+  });
+}
+
+function removePinnedQuote(id) {
+  const el = document.getElementById('pq-' + id);
+  if (el) el.remove();
+  delete userData.pinnedPositions[id];
+  saveUser();
+}
+window.removePinnedQuote = removePinnedQuote;
+
+// =========================================================
+// NOTES
+// =========================================================
+function addNote() {
+  const text = document.getElementById('note-text').value.trim();
+  if (!text) return;
+  const n = { id: Date.now(), text };
+  userData.notes.push(n);
+  document.getElementById('note-text').value = '';
+  saveUser();
+  renderNotes();
+  spawnSticky(n, null);
+}
+window.addNote = addNote;
+
+function renderNotes() {
+  const list = document.getElementById('notes-list');
+  list.innerHTML = '';
+  if (userData.notes.length === 0) {
+    list.innerHTML = '<p style="color:#aaa;font-size:0.85rem;text-align:center;margin-top:10px;">No notes yet.</p>';
+    return;
+  }
+  userData.notes.forEach(n => {
+    const div = document.createElement('div');
+    div.className = 'note-list-item';
+    div.innerHTML = `<span>${escHtml(n.text)}</span>
+      <div style="display:flex;gap:6px;flex-shrink:0;">
+        <button class="btn-sm ghost" onclick="showSticky(${n.id})" style="padding:4px 10px;font-size:0.78rem;">📌</button>
+        <button class="btn-sm ghost" onclick="deleteNote(${n.id})" style="padding:4px 10px;font-size:0.78rem;">✕</button>
+      </div>`;
+    list.appendChild(div);
+  });
+}
+
+function deleteNote(id) {
+  userData.notes = userData.notes.filter(n => n.id !== id);
+  delete userData.stickyPositions[id];
+  const el = document.getElementById('sticky-' + id);
+  if (el) el.remove();
+  saveUser();
+  renderNotes();
+}
+window.deleteNote = deleteNote;
+
+function showSticky(id) {
+  if (document.getElementById('sticky-' + id)) return;
+  const n = userData.notes.find(x => x.id === id);
+  if (n) spawnSticky(n, null);
+}
+window.showSticky = showSticky;
+
+function spawnSticky(n, pos) {
+  const el = document.createElement('div');
+  el.className = 'sticky-note';
+  el.id = 'sticky-' + n.id;
+  const savedPos = userData.stickyPositions[n.id] || pos || {
+    top: 100 + Math.random()*180, left: 200 + Math.random()*300
+  };
+  el.style.top = savedPos.top + 'px';
+  el.style.left = savedPos.left + 'px';
+  el.textContent = n.text;
+  const del = document.createElement('button');
+  del.className = 'sticky-del';
+  del.textContent = '✕';
+  del.onclick = () => el.remove();
+  el.appendChild(del);
+  document.getElementById('room').appendChild(el);
+  makeDraggable(el, (t,l) => {
+    userData.stickyPositions[n.id] = { top: t, left: l };
+    saveUser();
+  });
+}
+
+// =========================================================
+// MUSIC — HARDCODED PLAYLIST (audio files)
+// =========================================================
+// HOW TO ADD YOUR TRACKS:
+//   1. Place your .mp3 (or .ogg / .wav) files in the SAME
+//      folder as this HTML file.
+//   2. Add an entry to the PLAYLIST array below:
+//        { name: "Track Name", file: "your-file.mp3" }
+//   3. Save and refresh. That's it.
+//
+// The 'file' value is just the filename — no path needed
+// as long as it sits next to this HTML file.
+// =========================================================
+const PLAYLIST = [
+  // ——— ADD YOUR TRACKS BELOW ———
+  { name: "No More What If's (Instrumental)",   url:'https://files.catbox.moe/iwp1p6.mp3'  },
+  // { name: "Rainy Afternoon",   file: "rainy-afternoon.mp3"  },
+  // { name: "Late Night Study",  file: "late-night-study.mp3" },
+  // { name: "Morning Coffee",    file: "morning-coffee.mp3"   },
+  // { name: "Gentle Piano",      file: "gentle-piano.mp3"     },
+  // ——— END OF PLAYLIST ———
+];
+
+let audioVolume = 0.7;
+
+function renderTracks() {
+  const list = document.getElementById('track-list');
+  list.innerHTML = '';
+
+  if (PLAYLIST.length === 0) {
+    list.innerHTML = `
+      <div style="text-align:center;padding:24px 0;">
+        <div style="font-size:2rem;margin-bottom:12px;">🎵</div>
+        <p style="font-weight:700;font-size:0.95rem;margin-bottom:10px;">No tracks yet</p>
+        <p style="font-size:0.82rem;color:#888;line-height:1.7;text-align:left;background:#f5f5f0;border-radius:14px;padding:14px;">
+          <strong>To add music:</strong><br>
+          1. Place <code style="background:#e8e8e4;padding:1px 5px;border-radius:4px;">.mp3</code> files in the same folder as this HTML<br>
+          2. Open this file in a code editor<br>
+          3. Find the <code style="background:#e8e8e4;padding:1px 5px;border-radius:4px;">PLAYLIST</code> array and add:<br>
+          <code style="background:#e8e8e4;padding:3px 7px;border-radius:4px;display:inline-block;margin-top:6px;font-size:0.78rem;">{ name: "My Song", file: "my-song.mp3" }</code>
+        </p>
+      </div>`;
+    return;
+  }
+
+  // Volume slider
+  const volRow = document.createElement('div');
+  volRow.style.cssText = 'display:flex;align-items:center;gap:10px;margin-bottom:16px;padding-bottom:14px;border-bottom:2px solid #111;';
+  volRow.innerHTML = `
+    <span style="font-size:1rem;">🔈</span>
+    <input type="range" id="vol-slider" min="0" max="1" step="0.05" value="${audioVolume}"
+      style="flex:1;accent-color:#111;cursor:pointer;height:4px;">
+    <span style="font-size:1rem;">🔊</span>`;
+  list.appendChild(volRow);
+  document.getElementById('vol-slider').addEventListener('input', e => {
+    audioVolume = parseFloat(e.target.value);
+    document.getElementById('audio-player').volume = audioVolume;
+  });
+
+  PLAYLIST.forEach((t, i) => {
+    const isPlaying = currentPlaying === i;
+    const div = document.createElement('div');
+    div.className = 'music-track';
+    div.id = 'track-' + i;
+    div.innerHTML = `
+      <div style="flex:1;min-width:0;">
+        <div class="t-name" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${escHtml(t.name)}</div>
+        <div class="t-sub">${isPlaying ? '▶ Now playing…' : escHtml(t.file)}</div>
+      </div>
+      <div class="track-btns">
+        <button class="t-btn ${isPlaying ? 'playing' : ''}" onclick="toggleTrack(${i})">${isPlaying ? '⏸' : '▶'}</button>
+      </div>`;
+    list.appendChild(div);
+  });
+}
+
+function toggleTrack(i) {
+  const audio = document.getElementById('audio-player');
+  if (currentPlaying === i) {
+    audio.pause();
+    audio.src = '';
+    currentPlaying = null;
+  } else {
+    audio.src = PLAYLIST[i].file;
+    audio.volume = audioVolume;
+    audio.play().catch(() => {
+      // Autoplay blocked — show a friendly nudge
+      const list = document.getElementById('track-list');
+      const note = document.createElement('p');
+      note.style.cssText = 'color:#c00;font-size:0.8rem;text-align:center;margin-top:8px;';
+      note.textContent = 'Tap ▶ again after interacting with the page to start playback.';
+      if (!document.getElementById('play-note')) { note.id = 'play-note'; list.appendChild(note); }
+    });
+    currentPlaying = i;
+  }
+  renderTracks();
+}
+window.toggleTrack = toggleTrack;
+
+// =========================================================
+// DRAGGABLE
+// =========================================================
+function makeDraggable(el, onMove) {
+  let startX, startY, origX, origY, dragging = false;
+
+  el.addEventListener('mousedown', start);
+  el.addEventListener('touchstart', start, {passive: true});
+
+  function start(e) {
+    const src = e.touches ? e.touches[0] : e;
+    startX = src.clientX; startY = src.clientY;
+    origX = parseInt(el.style.left)||0;
+    origY = parseInt(el.style.top)||0;
+    dragging = true;
+    el.style.zIndex = 999;
+    document.addEventListener('mousemove', move);
+    document.addEventListener('touchmove', move, {passive:true});
+    document.addEventListener('mouseup', end);
+    document.addEventListener('touchend', end);
+  }
+
+  function move(e) {
+    if (!dragging) return;
+    const src = e.touches ? e.touches[0] : e;
+    const dx = src.clientX - startX;
+    const dy = src.clientY - startY;
+    const newLeft = Math.max(0, Math.min(window.innerWidth - el.offsetWidth, origX + dx));
+    const newTop = Math.max(0, Math.min(window.innerHeight - el.offsetHeight, origY + dy));
+    el.style.left = newLeft + 'px';
+    el.style.top = newTop + 'px';
+  }
+
+  function end() {
+    dragging = false;
+    el.style.zIndex = '';
+    document.removeEventListener('mousemove', move);
+    document.removeEventListener('touchmove', move);
+    document.removeEventListener('mouseup', end);
+    document.removeEventListener('touchend', end);
+    if (onMove) onMove(parseInt(el.style.top)||0, parseInt(el.style.left)||0);
+  }
+}
+
+// =========================================================
+// RENDER ALL (after login)
+// =========================================================
+function renderAll() {
+  // restore pinned quotes
+  userData.quotes.forEach(q => {
+    if (userData.pinnedPositions && userData.pinnedPositions[q.id]) {
+      createPinnedQuote(q, userData.pinnedPositions[q.id]);
+    }
+  });
+  // restore stickies
+  userData.notes.forEach(n => {
+    if (userData.stickyPositions && userData.stickyPositions[n.id]) {
+      spawnSticky(n, userData.stickyPositions[n.id]);
+    }
+  });
+}
+
+// =========================================================
+// UTILS
+// =========================================================
+function escHtml(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+</script>
+
+</body>
+</html>
