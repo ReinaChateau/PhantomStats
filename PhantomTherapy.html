@@ -1,0 +1,875 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Therapy Tracker</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,300;0,400;0,500;1,300&family=Syne:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #0a0a0a;
+    --bg2: #111111;
+    --bg3: #181818;
+    --pink: #ff2d78;
+    --pink-dim: rgba(255,45,120,0.15);
+    --pink-glow: rgba(255,45,120,0.4);
+    --text: #f0f0f0;
+    --muted: #666;
+    --border: rgba(255,45,120,0.3);
+    --radius: 12px;
+  }
+
+  html, body {
+    height: 100%;
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Mono', monospace;
+    font-size: 14px;
+    line-height: 1.6;
+  }
+
+  /* ─── SCROLLBAR ─── */
+  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb { background: var(--pink); border-radius: 2px; }
+
+  /* ─── PAGES ─── */
+  .page { display: none; min-height: 100vh; padding: 0 0 80px 0; }
+  .page.active { display: block; }
+
+  /* ─── LOGIN ─── */
+  #page-login {
+    display: none;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    flex-direction: column;
+    gap: 32px;
+    padding: 40px 20px;
+  }
+  #page-login.active { display: flex; }
+
+  .login-box {
+    width: 100%;
+    max-width: 380px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 40px 32px;
+    background: var(--bg2);
+    box-shadow: 0 0 40px var(--pink-dim);
+  }
+
+  .login-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 26px;
+    font-weight: 800;
+    color: var(--pink);
+    margin-bottom: 6px;
+    letter-spacing: -0.5px;
+    text-shadow: 0 0 20px var(--pink-glow);
+  }
+  .login-sub { color: var(--muted); font-size: 12px; margin-bottom: 28px; }
+
+  label { display: block; font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px; }
+
+  input[type="text"], textarea, select {
+    width: 100%;
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--text);
+    font-family: 'DM Mono', monospace;
+    font-size: 14px;
+    padding: 10px 14px;
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+  input[type="text"]:focus, textarea:focus, select:focus {
+    border-color: var(--pink);
+    box-shadow: 0 0 0 2px var(--pink-dim);
+  }
+  textarea { resize: vertical; min-height: 80px; }
+  select option { background: var(--bg3); }
+
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    background: transparent;
+    border: 1px solid var(--pink);
+    color: var(--pink);
+    font-family: 'DM Mono', monospace;
+    font-size: 13px;
+    font-weight: 500;
+    padding: 10px 20px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background 0.2s, box-shadow 0.2s, color 0.2s;
+    text-shadow: none;
+  }
+  .btn:hover {
+    background: var(--pink-dim);
+    box-shadow: 0 0 16px var(--pink-dim);
+  }
+  .btn-solid {
+    background: var(--pink);
+    color: #000;
+    font-weight: 700;
+  }
+  .btn-solid:hover {
+    background: #ff5599;
+    box-shadow: 0 0 24px var(--pink-glow);
+  }
+  .btn-full { width: 100%; }
+  .btn-sm { padding: 6px 12px; font-size: 12px; }
+
+  /* ─── TOP BAR ─── */
+  .topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 18px 24px;
+    border-bottom: 1px solid var(--border);
+    position: sticky;
+    top: 0;
+    background: rgba(10,10,10,0.95);
+    backdrop-filter: blur(10px);
+    z-index: 100;
+  }
+  .topbar-title {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: 18px;
+    color: var(--pink);
+    text-shadow: 0 0 16px var(--pink-glow);
+  }
+  .topbar-user { color: var(--muted); font-size: 12px; }
+
+  /* ─── MAIN CONTENT ─── */
+  .content { max-width: 720px; margin: 0 auto; padding: 32px 24px; }
+
+  /* ─── NAV TABS ─── */
+  .nav {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 32px;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 0;
+  }
+  .nav-tab {
+    background: none;
+    border: none;
+    border-bottom: 2px solid transparent;
+    color: var(--muted);
+    font-family: 'DM Mono', monospace;
+    font-size: 13px;
+    padding: 10px 16px;
+    cursor: pointer;
+    transition: color 0.2s, border-color 0.2s;
+    margin-bottom: -1px;
+  }
+  .nav-tab:hover { color: var(--text); }
+  .nav-tab.active { color: var(--pink); border-bottom-color: var(--pink); }
+
+  /* ─── SECTION HEADER ─── */
+  .section-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 24px;
+  }
+  .section-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 20px;
+    font-weight: 700;
+    letter-spacing: -0.3px;
+  }
+
+  /* ─── CARDS ─── */
+  .card {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 24px;
+    margin-bottom: 16px;
+  }
+  .card-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 15px;
+    font-weight: 600;
+    margin-bottom: 16px;
+    color: var(--pink);
+  }
+
+  /* ─── FORM FIELDS ─── */
+  .field { margin-bottom: 18px; }
+  .field-hint { font-size: 11px; color: var(--muted); margin-top: 5px; font-style: italic; }
+
+  /* ─── RATING SLIDER ─── */
+  .rating-wrap { display: flex; align-items: center; gap: 16px; }
+  .rating-val {
+    font-family: 'Syne', sans-serif;
+    font-size: 32px;
+    font-weight: 800;
+    color: var(--pink);
+    min-width: 40px;
+    text-align: center;
+    text-shadow: 0 0 12px var(--pink-glow);
+  }
+  input[type="range"] {
+    flex: 1;
+    -webkit-appearance: none;
+    height: 4px;
+    background: var(--bg3);
+    border-radius: 2px;
+    outline: none;
+    border: none;
+    padding: 0;
+  }
+  input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 18px;
+    height: 18px;
+    background: var(--pink);
+    border-radius: 50%;
+    cursor: pointer;
+    box-shadow: 0 0 8px var(--pink-glow);
+  }
+
+  /* ─── ENTRY LIST ─── */
+  .entry-item {
+    background: var(--bg3);
+    border: 1px solid rgba(255,45,120,0.12);
+    border-radius: 10px;
+    padding: 16px 20px;
+    margin-bottom: 10px;
+    cursor: pointer;
+    transition: border-color 0.2s, background 0.2s;
+  }
+  .entry-item:hover { border-color: var(--border); background: var(--bg2); }
+  .entry-meta {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 6px;
+  }
+  .entry-date { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; }
+  .entry-rating {
+    font-family: 'Syne', sans-serif;
+    font-size: 18px;
+    font-weight: 800;
+    color: var(--pink);
+  }
+  .entry-preview { font-size: 12px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+  /* ─── CHART ─── */
+  .chart-wrap {
+    position: relative;
+    height: 200px;
+    margin-bottom: 8px;
+  }
+
+  /* ─── MODAL ─── */
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.85);
+    z-index: 200;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+  }
+  .modal-overlay.open { display: flex; }
+  .modal {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    width: 100%;
+    max-width: 600px;
+    max-height: 85vh;
+    overflow-y: auto;
+    padding: 28px;
+    box-shadow: 0 0 60px var(--pink-dim);
+  }
+  .modal-head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    margin-bottom: 20px;
+  }
+  .modal-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 17px;
+    font-weight: 700;
+  }
+  .modal-close {
+    background: none;
+    border: none;
+    color: var(--muted);
+    font-size: 20px;
+    cursor: pointer;
+    line-height: 1;
+    padding: 0 0 0 12px;
+    transition: color 0.2s;
+  }
+  .modal-close:hover { color: var(--pink); }
+
+  /* ─── DETAIL ROWS ─── */
+  .detail-row { margin-bottom: 16px; }
+  .detail-label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px; }
+  .detail-val { font-size: 13px; line-height: 1.7; white-space: pre-wrap; }
+
+  /* ─── EMPTY STATE ─── */
+  .empty { text-align: center; padding: 48px 24px; color: var(--muted); }
+  .empty-icon { font-size: 32px; margin-bottom: 12px; }
+
+  /* ─── HOME CARDS ─── */
+  .home-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 32px; }
+  @media(max-width:500px){ .home-grid { grid-template-columns: 1fr; } }
+  .home-card {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 24px 20px;
+    cursor: pointer;
+    transition: box-shadow 0.2s, border-color 0.2s;
+    text-align: center;
+  }
+  .home-card:hover {
+    border-color: var(--pink);
+    box-shadow: 0 0 24px var(--pink-dim);
+  }
+  .home-card-icon { font-size: 30px; margin-bottom: 10px; }
+  .home-card-title {
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 15px;
+    margin-bottom: 4px;
+  }
+  .home-card-desc { font-size: 11px; color: var(--muted); }
+
+  /* ─── STREAK / STAT ─── */
+  .stat-row { display: flex; gap: 12px; margin-bottom: 24px; flex-wrap: wrap; }
+  .stat-box {
+    flex: 1;
+    min-width: 100px;
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 14px 16px;
+    text-align: center;
+  }
+  .stat-num {
+    font-family: 'Syne', sans-serif;
+    font-size: 24px;
+    font-weight: 800;
+    color: var(--pink);
+  }
+  .stat-lbl { font-size: 11px; color: var(--muted); margin-top: 2px; }
+
+  /* ─── THOUGHT RECORD FORM ─── */
+  .tr-section {
+    border-left: 2px solid var(--border);
+    padding-left: 16px;
+    margin-bottom: 20px;
+  }
+  .tr-section-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--pink);
+    margin-bottom: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .tag {
+    display: inline-block;
+    background: var(--pink-dim);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    color: var(--pink);
+    font-size: 11px;
+    padding: 2px 8px;
+  }
+</style>
+</head>
+<body>
+
+<!-- ═══════════════ LOGIN PAGE ═══════════════ -->
+<div id="page-login" class="page">
+  <div class="login-box">
+    <div class="login-title">therapy tracker</div>
+    <div class="login-sub">enter your name to continue</div>
+    <div class="field">
+      <label>your name</label>
+      <input type="text" id="login-input" placeholder="e.g. alex" autocomplete="off" />
+    </div>
+    <button class="btn btn-solid btn-full" onclick="doLogin()">continue →</button>
+  </div>
+</div>
+
+<!-- ═══════════════ MAIN APP ═══════════════ -->
+<div id="page-app" class="page">
+  <div class="topbar">
+    <div class="topbar-title">therapy tracker</div>
+    <div style="display:flex;align-items:center;gap:14px;">
+      <span class="topbar-user" id="topbar-username"></span>
+      <button class="btn btn-sm" onclick="doLogout()">logout</button>
+    </div>
+  </div>
+
+  <div class="content">
+    <div class="nav">
+      <button class="nav-tab active" onclick="showTab('home',this)">home</button>
+      <button class="nav-tab" onclick="showTab('relax',this)">relaxation</button>
+      <button class="nav-tab" onclick="showTab('thought',this)">thought record</button>
+    </div>
+
+    <!-- ── HOME ── -->
+    <div id="tab-home">
+      <div id="greeting" style="margin-bottom:24px;">
+        <div style="font-family:'Syne',sans-serif;font-size:22px;font-weight:800;margin-bottom:4px;" id="greeting-text"></div>
+        <div style="color:var(--muted);font-size:12px;" id="greeting-date"></div>
+      </div>
+      <div class="home-grid">
+        <div class="home-card" onclick="showTab('relax', document.querySelectorAll('.nav-tab')[1])">
+          <div class="home-card-icon">🌿</div>
+          <div class="home-card-title">Relaxation Log</div>
+          <div class="home-card-desc">20 min daily · rate 1–10</div>
+        </div>
+        <div class="home-card" onclick="showTab('thought', document.querySelectorAll('.nav-tab')[2])">
+          <div class="home-card-icon">🧠</div>
+          <div class="home-card-title">Thought Record</div>
+          <div class="home-card-desc">CBT diary · log & review</div>
+        </div>
+      </div>
+      <div class="stat-row">
+        <div class="stat-box"><div class="stat-num" id="stat-relax-count">—</div><div class="stat-lbl">relax sessions</div></div>
+        <div class="stat-box"><div class="stat-num" id="stat-relax-avg">—</div><div class="stat-lbl">avg. rating</div></div>
+        <div class="stat-box"><div class="stat-num" id="stat-thought-count">—</div><div class="stat-lbl">thought records</div></div>
+      </div>
+    </div>
+
+    <!-- ── RELAXATION ── -->
+    <div id="tab-relax" style="display:none;">
+      <div class="section-head">
+        <div class="section-title">Relaxation Log</div>
+        <button class="btn btn-solid btn-sm" onclick="openRelaxForm()">+ new entry</button>
+      </div>
+
+      <!-- chart -->
+      <div class="card" id="relax-chart-card" style="display:none;">
+        <div class="card-title">relaxation trend</div>
+        <div class="chart-wrap"><canvas id="relaxChart"></canvas></div>
+      </div>
+
+      <div id="relax-list"></div>
+    </div>
+
+    <!-- ── THOUGHT RECORD ── -->
+    <div id="tab-thought" style="display:none;">
+      <div class="section-head">
+        <div class="section-title">Thought Record</div>
+        <button class="btn btn-solid btn-sm" onclick="openThoughtForm()">+ new entry</button>
+      </div>
+      <div id="thought-list"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ RELAX FORM MODAL ═══════════════ -->
+<div class="modal-overlay" id="modal-relax-form">
+  <div class="modal">
+    <div class="modal-head">
+      <div class="modal-title">New Relaxation Entry</div>
+      <button class="modal-close" onclick="closeModal('modal-relax-form')">✕</button>
+    </div>
+    <div class="field">
+      <label>date</label>
+      <input type="text" id="rf-date" readonly />
+    </div>
+    <div class="field">
+      <label>how relaxed did you feel? (1–10)</label>
+      <div class="rating-wrap">
+        <input type="range" min="1" max="10" value="5" id="rf-rating" oninput="document.getElementById('rf-rating-val').textContent=this.value" />
+        <div class="rating-val" id="rf-rating-val">5</div>
+      </div>
+      <div class="field-hint">1 = heavy rumination / guilt &nbsp;·&nbsp; 10 = fully relaxed</div>
+    </div>
+    <div class="field">
+      <label>notes (optional)</label>
+      <textarea id="rf-notes" placeholder="anything on your mind during or after the session…"></textarea>
+    </div>
+    <button class="btn btn-solid btn-full" onclick="saveRelaxEntry()">save entry</button>
+  </div>
+</div>
+
+<!-- ═══════════════ RELAX DETAIL MODAL ═══════════════ -->
+<div class="modal-overlay" id="modal-relax-detail">
+  <div class="modal">
+    <div class="modal-head">
+      <div class="modal-title">Relaxation Entry</div>
+      <button class="modal-close" onclick="closeModal('modal-relax-detail')">✕</button>
+    </div>
+    <div id="relax-detail-content"></div>
+  </div>
+</div>
+
+<!-- ═══════════════ THOUGHT FORM MODAL ═══════════════ -->
+<div class="modal-overlay" id="modal-thought-form">
+  <div class="modal">
+    <div class="modal-head">
+      <div class="modal-title">New Thought Record</div>
+      <button class="modal-close" onclick="closeModal('modal-thought-form')">✕</button>
+    </div>
+    <div class="field">
+      <label>date</label>
+      <input type="text" id="tf-date" readonly />
+    </div>
+
+    <div class="tr-section">
+      <div class="tr-section-title">1 · Situation</div>
+      <div class="field">
+        <textarea id="tf-situation" placeholder="What happened? Where? When? Who with?"></textarea>
+      </div>
+    </div>
+
+    <div class="tr-section">
+      <div class="tr-section-title">2 · Unhelpful Thoughts / Images</div>
+      <div class="field">
+        <textarea id="tf-thoughts" placeholder="What went through your mind? What disturbed you? What did those thoughts/images mean to you? What 'button' is this pressing for you? What's the worst that could happen?"></textarea>
+      </div>
+    </div>
+
+    <div class="tr-section">
+      <div class="tr-section-title">3 · Feelings</div>
+      <div class="field">
+        <label>emotion(s) — rate each 0–100%</label>
+        <textarea id="tf-feelings" placeholder="e.g. Anger 80%, Contempt 60%… What emotion did you feel at that time? What did you feel in your body?"></textarea>
+      </div>
+    </div>
+
+    <div class="tr-section">
+      <div class="tr-section-title">4 · Alternative / More Balanced Response</div>
+      <div class="field">
+        <textarea id="tf-alternative" placeholder="Am I looking through 'gloomy specs'? What would someone else say about this? Is my reaction in proportion to the actual event? Is this fact or opinion? What advice would I give someone else?"></textarea>
+      </div>
+    </div>
+
+    <div class="tr-section">
+      <div class="tr-section-title">5 · What I Did / What Helped</div>
+      <div class="field">
+        <textarea id="tf-action" placeholder="What could I do differently? What would be more effective? What will be most helpful for me or the situation? What will the consequences be of doing or not doing…?"></textarea>
+      </div>
+    </div>
+
+    <div class="tr-section">
+      <div class="tr-section-title">6 · Re-rate Emotion</div>
+      <div class="field">
+        <textarea id="tf-rerate" placeholder="What am I feeling now? How intense is that feeling now? (0–100%)"></textarea>
+      </div>
+    </div>
+
+    <button class="btn btn-solid btn-full" onclick="saveThoughtEntry()">save entry</button>
+  </div>
+</div>
+
+<!-- ═══════════════ THOUGHT DETAIL MODAL ═══════════════ -->
+<div class="modal-overlay" id="modal-thought-detail">
+  <div class="modal">
+    <div class="modal-head">
+      <div class="modal-title">Thought Record</div>
+      <button class="modal-close" onclick="closeModal('modal-thought-detail')">✕</button>
+    </div>
+    <div id="thought-detail-content"></div>
+  </div>
+</div>
+
+<!-- ═══════════════ FIREBASE + APP LOGIC ═══════════════ -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-app.js";
+  import { getFirestore, collection, addDoc, getDocs, query, orderBy } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyAa1Vkbhum-Xh9y_Zwz5RMHd3H6J6pLBlY",
+    authDomain: "life-7d79a.firebaseapp.com",
+    projectId: "life-7d79a",
+    storageBucket: "life-7d79a.firebasestorage.app",
+    messagingSenderId: "619049822813",
+    appId: "1:619049822813:web:abac60c87314caf7cdfbb4",
+    measurementId: "G-V5W0F3NSNR"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+
+  let currentUser = null;
+  let relaxChart = null;
+
+  // ── helpers ──
+  function fmtDate(ts) {
+    const d = ts ? new Date(ts) : new Date();
+    return d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+  }
+  function todayStr() { return fmtDate(Date.now()); }
+  function nowISO() { return new Date().toISOString(); }
+
+  // ── login / logout ──
+  window.doLogin = function() {
+    const val = document.getElementById('login-input').value.trim();
+    if (!val) return;
+    currentUser = val.toLowerCase().replace(/\s+/g,'_');
+    localStorage.setItem('tt_user', currentUser);
+    startApp();
+  };
+  window.doLogout = function() {
+    localStorage.removeItem('tt_user');
+    currentUser = null;
+    document.getElementById('page-app').classList.remove('active');
+    document.getElementById('page-login').classList.add('active');
+    document.getElementById('login-input').value = '';
+  };
+
+  function startApp() {
+    document.getElementById('page-login').classList.remove('active');
+    document.getElementById('page-app').classList.add('active');
+    document.getElementById('topbar-username').textContent = currentUser;
+    setGreeting();
+    loadAll();
+  }
+
+  function setGreeting() {
+    const h = new Date().getHours();
+    const greet = h < 12 ? 'good morning' : h < 17 ? 'good afternoon' : 'good evening';
+    document.getElementById('greeting-text').textContent = `${greet}, ${currentUser}.`;
+    document.getElementById('greeting-date').textContent = new Date().toLocaleDateString('en-GB',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+  }
+
+  // ── tab switching ──
+  window.showTab = function(name, btn) {
+    document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('tab-home').style.display = name==='home' ? '' : 'none';
+    document.getElementById('tab-relax').style.display = name==='relax' ? '' : 'none';
+    document.getElementById('tab-thought').style.display = name==='thought' ? '' : 'none';
+  };
+
+  // ── modal helpers ──
+  window.closeModal = function(id) {
+    document.getElementById(id).classList.remove('open');
+  };
+  function openModal(id) {
+    document.getElementById(id).classList.add('open');
+  }
+  // close on overlay click
+  document.querySelectorAll('.modal-overlay').forEach(el => {
+    el.addEventListener('click', e => { if(e.target===el) el.classList.remove('open'); });
+  });
+
+  // ──────────────────────────────────────────
+  // RELAXATION
+  // ──────────────────────────────────────────
+  window.openRelaxForm = function() {
+    document.getElementById('rf-date').value = todayStr();
+    document.getElementById('rf-rating').value = 5;
+    document.getElementById('rf-rating-val').textContent = '5';
+    document.getElementById('rf-notes').value = '';
+    openModal('modal-relax-form');
+  };
+
+  window.saveRelaxEntry = async function() {
+    const entry = {
+      user: currentUser,
+      date: todayStr(),
+      ts: nowISO(),
+      rating: parseInt(document.getElementById('rf-rating').value),
+      notes: document.getElementById('rf-notes').value.trim()
+    };
+    await addDoc(collection(db, 'relaxation'), entry);
+    closeModal('modal-relax-form');
+    loadRelax();
+  };
+
+  async function loadRelax() {
+    const q = query(collection(db,'relaxation'), orderBy('ts','desc'));
+    const snap = await getDocs(q);
+    const all = [];
+    snap.forEach(d => { const data = d.data(); if(data.user===currentUser) all.push(data); });
+
+    // stats
+    document.getElementById('stat-relax-count').textContent = all.length;
+    if(all.length) {
+      const avg = (all.reduce((s,e)=>s+e.rating,0)/all.length).toFixed(1);
+      document.getElementById('stat-relax-avg').textContent = avg;
+    }
+
+    // chart
+    const chartCard = document.getElementById('relax-chart-card');
+    if(all.length > 1) {
+      chartCard.style.display = '';
+      const sorted = [...all].sort((a,b)=>a.ts.localeCompare(b.ts)).slice(-20);
+      renderRelaxChart(sorted);
+    } else { chartCard.style.display='none'; }
+
+    // list
+    const list = document.getElementById('relax-list');
+    if(!all.length) {
+      list.innerHTML = `<div class="empty"><div class="empty-icon">🌿</div><div>no entries yet.<br>log your first session!</div></div>`;
+      return;
+    }
+    list.innerHTML = all.map((e,i) => `
+      <div class="entry-item" onclick="showRelaxDetail(${i})">
+        <div class="entry-meta">
+          <span class="entry-date">${e.date}</span>
+          <span class="entry-rating">${e.rating}<span style="font-size:12px;color:var(--muted)">/10</span></span>
+        </div>
+        ${e.notes ? `<div class="entry-preview">${e.notes}</div>` : '<div class="entry-preview" style="color:var(--muted);font-style:italic;">no notes</div>'}
+      </div>
+    `).join('');
+
+    window._relaxEntries = all;
+  }
+
+  function renderRelaxChart(entries) {
+    const ctx = document.getElementById('relaxChart').getContext('2d');
+    if(relaxChart) relaxChart.destroy();
+    relaxChart = new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: entries.map(e=>e.date),
+        datasets: [{
+          data: entries.map(e=>e.rating),
+          borderColor: '#ff2d78',
+          backgroundColor: 'rgba(255,45,120,0.08)',
+          pointBackgroundColor: '#ff2d78',
+          pointBorderColor: '#ff2d78',
+          pointRadius: 4,
+          tension: 0.4,
+          fill: true
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: {
+          x: {
+            ticks: { color: '#666', font: { family: 'DM Mono', size: 10 }, maxRotation: 30 },
+            grid: { color: 'rgba(255,45,120,0.05)' }
+          },
+          y: {
+            min: 0, max: 10,
+            ticks: { color: '#666', font: { family: 'DM Mono', size: 11 }, stepSize: 2 },
+            grid: { color: 'rgba(255,45,120,0.07)' }
+          }
+        }
+      }
+    });
+  }
+
+  window.showRelaxDetail = function(i) {
+    const e = window._relaxEntries[i];
+    document.getElementById('relax-detail-content').innerHTML = `
+      <div class="detail-row"><div class="detail-label">date</div><div class="detail-val">${e.date}</div></div>
+      <div class="detail-row"><div class="detail-label">rating</div><div class="detail-val"><span class="tag">${e.rating} / 10</span></div></div>
+      <div class="detail-row"><div class="detail-label">notes</div><div class="detail-val">${e.notes || '—'}</div></div>
+    `;
+    openModal('modal-relax-detail');
+  };
+
+  // ──────────────────────────────────────────
+  // THOUGHT RECORD
+  // ──────────────────────────────────────────
+  window.openThoughtForm = function() {
+    document.getElementById('tf-date').value = todayStr();
+    ['tf-situation','tf-thoughts','tf-feelings','tf-alternative','tf-action','tf-rerate'].forEach(id=>{
+      document.getElementById(id).value='';
+    });
+    openModal('modal-thought-form');
+  };
+
+  window.saveThoughtEntry = async function() {
+    const entry = {
+      user: currentUser,
+      date: todayStr(),
+      ts: nowISO(),
+      situation: document.getElementById('tf-situation').value.trim(),
+      thoughts: document.getElementById('tf-thoughts').value.trim(),
+      feelings: document.getElementById('tf-feelings').value.trim(),
+      alternative: document.getElementById('tf-alternative').value.trim(),
+      action: document.getElementById('tf-action').value.trim(),
+      rerate: document.getElementById('tf-rerate').value.trim()
+    };
+    await addDoc(collection(db,'thought_records'), entry);
+    closeModal('modal-thought-form');
+    loadThought();
+  };
+
+  async function loadThought() {
+    const q = query(collection(db,'thought_records'), orderBy('ts','desc'));
+    const snap = await getDocs(q);
+    const all = [];
+    snap.forEach(d => { const data = d.data(); if(data.user===currentUser) all.push(data); });
+
+    document.getElementById('stat-thought-count').textContent = all.length;
+
+    const list = document.getElementById('thought-list');
+    if(!all.length) {
+      list.innerHTML = `<div class="empty"><div class="empty-icon">🧠</div><div>no thought records yet.</div></div>`;
+      return;
+    }
+    list.innerHTML = all.map((e,i) => `
+      <div class="entry-item" onclick="showThoughtDetail(${i})">
+        <div class="entry-meta">
+          <span class="entry-date">${e.date}</span>
+        </div>
+        <div class="entry-preview">${e.situation || e.thoughts || '—'}</div>
+      </div>
+    `).join('');
+
+    window._thoughtEntries = all;
+  }
+
+  window.showThoughtDetail = function(i) {
+    const e = window._thoughtEntries[i];
+    const rows = [
+      ['date', e.date],
+      ['situation', e.situation],
+      ['unhelpful thoughts / images', e.thoughts],
+      ['feelings', e.feelings],
+      ['alternative / balanced response', e.alternative],
+      ['what i did / what helped', e.action],
+      ['re-rated emotion', e.rerate]
+    ];
+    document.getElementById('thought-detail-content').innerHTML = rows.map(([label,val])=>`
+      <div class="detail-row">
+        <div class="detail-label">${label}</div>
+        <div class="detail-val">${val || '—'}</div>
+      </div>
+    `).join('');
+    openModal('modal-thought-detail');
+  };
+
+  // ── load all ──
+  async function loadAll() {
+    await Promise.all([loadRelax(), loadThought()]);
+  }
+
+  // ── auto login ──
+  const saved = localStorage.getItem('tt_user');
+  if(saved) {
+    currentUser = saved;
+    document.getElementById('login-input').value = saved;
+    startApp();
+  } else {
+    document.getElementById('page-login').classList.add('active');
+  }
+</script>
+</body>
+</html>
