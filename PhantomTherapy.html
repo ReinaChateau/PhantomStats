@@ -4,446 +4,360 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Therapy Tracker</title>
-<link href="https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,300;0,400;0,500;1,300&family=Syne:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Comfortaa:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
   :root {
-    --bg: #0a0a0a;
-    --bg2: #111111;
-    --bg3: #181818;
-    --pink: #ff2d78;
-    --pink-dim: rgba(255,45,120,0.15);
-    --pink-glow: rgba(255,45,120,0.4);
-    --text: #f0f0f0;
-    --muted: #666;
-    --border: rgba(255,45,120,0.3);
-    --radius: 12px;
+    --bg:       #0d0d0d;
+    --bg2:      #151515;
+    --bg3:      #1c1c1c;
+    --pink:     #ff3d85;
+    --pink-dim: rgba(255,61,133,0.12);
+    --pink-mid: rgba(255,61,133,0.25);
+    --pink-glow:rgba(255,61,133,0.35);
+    --text:     #ececec;
+    --muted:    #5a5a5a;
+    --border:   rgba(255,61,133,0.22);
+    --radius:   20px;
+    --radius-sm:12px;
   }
 
   html, body {
     height: 100%;
     background: var(--bg);
     color: var(--text);
-    font-family: 'DM Mono', monospace;
+    font-family: 'Comfortaa', sans-serif;
     font-size: 14px;
-    line-height: 1.6;
+    line-height: 1.65;
   }
 
-  /* ─── SCROLLBAR ─── */
   ::-webkit-scrollbar { width: 4px; }
-  ::-webkit-scrollbar-track { background: var(--bg); }
-  ::-webkit-scrollbar-thumb { background: var(--pink); border-radius: 2px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--pink-mid); border-radius: 4px; }
 
-  /* ─── PAGES ─── */
-  .page { display: none; min-height: 100vh; padding: 0 0 80px 0; }
+  /* ── PAGES ── */
+  .page { display: none; min-height: 100vh; }
   .page.active { display: block; }
 
-  /* ─── LOGIN ─── */
+  /* ── LOGIN ── */
   #page-login {
     display: none;
     align-items: center;
     justify-content: center;
     min-height: 100vh;
     flex-direction: column;
-    gap: 32px;
     padding: 40px 20px;
   }
   #page-login.active { display: flex; }
 
   .login-box {
     width: 100%;
-    max-width: 380px;
+    max-width: 360px;
     border: 1px solid var(--border);
     border-radius: var(--radius);
-    padding: 40px 32px;
+    padding: 44px 36px;
     background: var(--bg2);
-    box-shadow: 0 0 40px var(--pink-dim);
+    box-shadow: 0 8px 60px rgba(0,0,0,0.5), 0 0 0 1px var(--border);
   }
-
-  .login-title {
-    font-family: 'Syne', sans-serif;
-    font-size: 26px;
-    font-weight: 800;
+  .login-logo {
+    font-size: 28px;
+    font-weight: 700;
     color: var(--pink);
     margin-bottom: 6px;
-    letter-spacing: -0.5px;
-    text-shadow: 0 0 20px var(--pink-glow);
+    letter-spacing: -0.3px;
   }
-  .login-sub { color: var(--muted); font-size: 12px; margin-bottom: 28px; }
+  .login-sub { color: var(--muted); font-size: 13px; margin-bottom: 32px; }
 
-  label { display: block; font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px; }
-
-  input[type="text"], textarea, select {
+  /* ── INPUTS ── */
+  label {
+    display: block;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 1.2px;
+    margin-bottom: 7px;
+  }
+  input[type="text"], input[type="date"], textarea, select {
     width: 100%;
     background: var(--bg3);
-    border: 1px solid var(--border);
-    border-radius: 8px;
+    border: 1px solid rgba(255,61,133,0.18);
+    border-radius: var(--radius-sm);
     color: var(--text);
-    font-family: 'DM Mono', monospace;
+    font-family: 'Comfortaa', sans-serif;
     font-size: 14px;
-    padding: 10px 14px;
+    padding: 11px 15px;
     outline: none;
-    transition: border-color 0.2s, box-shadow 0.2s;
+    transition: border-color 0.25s, box-shadow 0.25s;
   }
-  input[type="text"]:focus, textarea:focus, select:focus {
+  input[type="text"]:focus, input[type="date"]:focus, textarea:focus {
     border-color: var(--pink);
-    box-shadow: 0 0 0 2px var(--pink-dim);
+    box-shadow: 0 0 0 3px var(--pink-dim);
   }
-  textarea { resize: vertical; min-height: 80px; }
-  select option { background: var(--bg3); }
+  textarea { resize: vertical; min-height: 84px; }
+  input[type="date"]::-webkit-calendar-picker-indicator { filter: invert(0.6); cursor: pointer; }
 
+  /* ── BUTTONS ── */
   .btn {
     display: inline-flex;
     align-items: center;
     justify-content: center;
     gap: 8px;
     background: transparent;
-    border: 1px solid var(--pink);
+    border: 1.5px solid var(--pink);
     color: var(--pink);
-    font-family: 'DM Mono', monospace;
+    font-family: 'Comfortaa', sans-serif;
     font-size: 13px;
-    font-weight: 500;
-    padding: 10px 20px;
-    border-radius: 8px;
+    font-weight: 600;
+    padding: 10px 22px;
+    border-radius: 50px;
     cursor: pointer;
-    transition: background 0.2s, box-shadow 0.2s, color 0.2s;
-    text-shadow: none;
+    transition: background 0.2s, box-shadow 0.2s;
   }
-  .btn:hover {
-    background: var(--pink-dim);
-    box-shadow: 0 0 16px var(--pink-dim);
-  }
-  .btn-solid {
-    background: var(--pink);
-    color: #000;
-    font-weight: 700;
-  }
-  .btn-solid:hover {
-    background: #ff5599;
-    box-shadow: 0 0 24px var(--pink-glow);
-  }
+  .btn:hover { background: var(--pink-dim); box-shadow: 0 0 20px var(--pink-dim); }
+  .btn-solid { background: var(--pink); color: #000; border-color: var(--pink); }
+  .btn-solid:hover { background: #ff6aa0; box-shadow: 0 4px 24px var(--pink-glow); }
   .btn-full { width: 100%; }
-  .btn-sm { padding: 6px 12px; font-size: 12px; }
+  .btn-sm { padding: 7px 16px; font-size: 12px; }
 
-  /* ─── TOP BAR ─── */
+  /* ── TOPBAR ── */
   .topbar {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 18px 24px;
+    padding: 16px 28px;
     border-bottom: 1px solid var(--border);
-    position: sticky;
-    top: 0;
-    background: rgba(10,10,10,0.95);
-    backdrop-filter: blur(10px);
+    position: sticky; top: 0;
+    background: rgba(13,13,13,0.92);
+    backdrop-filter: blur(16px);
     z-index: 100;
   }
-  .topbar-title {
-    font-family: 'Syne', sans-serif;
-    font-weight: 800;
-    font-size: 18px;
-    color: var(--pink);
-    text-shadow: 0 0 16px var(--pink-glow);
-  }
+  .topbar-title { font-size: 17px; font-weight: 700; color: var(--pink); }
   .topbar-user { color: var(--muted); font-size: 12px; }
 
-  /* ─── MAIN CONTENT ─── */
-  .content { max-width: 720px; margin: 0 auto; padding: 32px 24px; }
+  /* ── CONTENT ── */
+  .content { max-width: 700px; margin: 0 auto; padding: 36px 24px 100px; }
 
-  /* ─── NAV TABS ─── */
-  .nav {
-    display: flex;
-    gap: 8px;
-    margin-bottom: 32px;
-    border-bottom: 1px solid var(--border);
-    padding-bottom: 0;
-  }
+  /* ── NAV ── */
+  .nav { display: flex; gap: 6px; margin-bottom: 36px; }
   .nav-tab {
-    background: none;
-    border: none;
-    border-bottom: 2px solid transparent;
+    background: var(--bg3);
+    border: 1px solid transparent;
+    border-radius: 50px;
     color: var(--muted);
-    font-family: 'DM Mono', monospace;
+    font-family: 'Comfortaa', sans-serif;
     font-size: 13px;
-    padding: 10px 16px;
+    font-weight: 600;
+    padding: 8px 18px;
     cursor: pointer;
-    transition: color 0.2s, border-color 0.2s;
-    margin-bottom: -1px;
+    transition: all 0.2s;
   }
-  .nav-tab:hover { color: var(--text); }
-  .nav-tab.active { color: var(--pink); border-bottom-color: var(--pink); }
+  .nav-tab:hover { color: var(--text); border-color: var(--border); }
+  .nav-tab.active { background: var(--pink-dim); border-color: var(--pink); color: var(--pink); }
 
-  /* ─── SECTION HEADER ─── */
-  .section-head {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 24px;
-  }
-  .section-title {
-    font-family: 'Syne', sans-serif;
-    font-size: 20px;
-    font-weight: 700;
-    letter-spacing: -0.3px;
-  }
+  /* ── SECTION HEAD ── */
+  .section-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px; }
+  .section-title { font-size: 20px; font-weight: 700; }
 
-  /* ─── CARDS ─── */
+  /* ── CARD ── */
   .card {
     background: var(--bg2);
     border: 1px solid var(--border);
     border-radius: var(--radius);
-    padding: 24px;
+    padding: 24px 26px;
     margin-bottom: 16px;
   }
-  .card-title {
-    font-family: 'Syne', sans-serif;
-    font-size: 15px;
-    font-weight: 600;
-    margin-bottom: 16px;
-    color: var(--pink);
-  }
+  .card-title { font-size: 14px; font-weight: 700; color: var(--pink); margin-bottom: 16px; }
 
-  /* ─── FORM FIELDS ─── */
-  .field { margin-bottom: 18px; }
-  .field-hint { font-size: 11px; color: var(--muted); margin-top: 5px; font-style: italic; }
+  /* ── FORM FIELDS ── */
+  .field { margin-bottom: 20px; }
+  .field-hint { font-size: 11px; color: var(--muted); margin-top: 6px; }
 
-  /* ─── RATING SLIDER ─── */
+  /* ── SLIDER ── */
   .rating-wrap { display: flex; align-items: center; gap: 16px; }
-  .rating-val {
-    font-family: 'Syne', sans-serif;
-    font-size: 32px;
-    font-weight: 800;
-    color: var(--pink);
-    min-width: 40px;
-    text-align: center;
-    text-shadow: 0 0 12px var(--pink-glow);
-  }
+  .rating-val { font-size: 34px; font-weight: 700; color: var(--pink); min-width: 44px; text-align: center; }
   input[type="range"] {
-    flex: 1;
-    -webkit-appearance: none;
-    height: 4px;
-    background: var(--bg3);
-    border-radius: 2px;
-    outline: none;
-    border: none;
-    padding: 0;
+    flex: 1; -webkit-appearance: none;
+    height: 5px; background: var(--bg3);
+    border-radius: 4px; outline: none; border: none; padding: 0;
   }
   input[type="range"]::-webkit-slider-thumb {
     -webkit-appearance: none;
-    width: 18px;
-    height: 18px;
-    background: var(--pink);
-    border-radius: 50%;
-    cursor: pointer;
-    box-shadow: 0 0 8px var(--pink-glow);
+    width: 20px; height: 20px;
+    background: var(--pink); border-radius: 50%;
+    cursor: pointer; box-shadow: 0 0 10px var(--pink-glow);
   }
 
-  /* ─── ENTRY LIST ─── */
+  /* ── ENTRY ITEMS ── */
   .entry-item {
-    background: var(--bg3);
-    border: 1px solid rgba(255,45,120,0.12);
-    border-radius: 10px;
-    padding: 16px 20px;
-    margin-bottom: 10px;
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 18px 22px;
+    margin-bottom: 12px;
     cursor: pointer;
-    transition: border-color 0.2s, background 0.2s;
+    transition: border-color 0.2s, transform 0.15s, box-shadow 0.2s;
   }
-  .entry-item:hover { border-color: var(--border); background: var(--bg2); }
-  .entry-meta {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 6px;
+  .entry-item:hover {
+    border-color: var(--pink);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 20px var(--pink-dim);
   }
-  .entry-date { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; }
-  .entry-rating {
-    font-family: 'Syne', sans-serif;
-    font-size: 18px;
-    font-weight: 800;
-    color: var(--pink);
-  }
-  .entry-preview { font-size: 12px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .entry-meta { display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; }
+  .entry-date { font-size: 11px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.8px; }
+  .entry-rating { font-size: 20px; font-weight: 700; color: var(--pink); }
+  .entry-preview { font-size: 13px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
-  /* ─── CHART ─── */
-  .chart-wrap {
-    position: relative;
-    height: 200px;
-    margin-bottom: 8px;
-  }
+  /* ── CHART ── */
+  .chart-wrap { position: relative; height: 200px; }
 
-  /* ─── MODAL ─── */
+  /* ── MODAL ── */
   .modal-overlay {
-    display: none;
-    position: fixed;
-    inset: 0;
-    background: rgba(0,0,0,0.85);
-    z-index: 200;
-    align-items: center;
-    justify-content: center;
-    padding: 24px;
+    display: none; position: fixed; inset: 0;
+    background: rgba(0,0,0,0.75); z-index: 200;
+    align-items: center; justify-content: center; padding: 24px;
   }
   .modal-overlay.open { display: flex; }
   .modal {
     background: var(--bg2);
     border: 1px solid var(--border);
     border-radius: var(--radius);
-    width: 100%;
-    max-width: 600px;
-    max-height: 85vh;
-    overflow-y: auto;
-    padding: 28px;
-    box-shadow: 0 0 60px var(--pink-dim);
+    width: 100%; max-width: 580px;
+    max-height: 88vh; overflow-y: auto;
+    padding: 32px;
+    box-shadow: 0 20px 80px rgba(0,0,0,0.7);
+    animation: slideUp 0.25s ease;
   }
-  .modal-head {
-    display: flex;
-    align-items: flex-start;
-    justify-content: space-between;
-    margin-bottom: 20px;
-  }
-  .modal-title {
-    font-family: 'Syne', sans-serif;
-    font-size: 17px;
-    font-weight: 700;
-  }
+  @keyframes slideUp { from { opacity:0; transform:translateY(16px); } to { opacity:1; transform:translateY(0); } }
+  .modal-head { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 24px; }
+  .modal-title { font-size: 18px; font-weight: 700; }
   .modal-close {
-    background: none;
-    border: none;
-    color: var(--muted);
-    font-size: 20px;
-    cursor: pointer;
-    line-height: 1;
-    padding: 0 0 0 12px;
+    background: none; border: none; color: var(--muted);
+    font-size: 22px; cursor: pointer; padding: 0; line-height: 1;
     transition: color 0.2s;
   }
   .modal-close:hover { color: var(--pink); }
 
-  /* ─── DETAIL ROWS ─── */
-  .detail-row { margin-bottom: 16px; }
-  .detail-label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px; }
-  .detail-val { font-size: 13px; line-height: 1.7; white-space: pre-wrap; }
+  /* ── DETAIL ── */
+  .detail-row { margin-bottom: 18px; padding-bottom: 18px; border-bottom: 1px solid rgba(255,61,133,0.08); }
+  .detail-row:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
+  .detail-label { font-size: 11px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 5px; }
+  .detail-val { font-size: 14px; line-height: 1.7; white-space: pre-wrap; }
 
-  /* ─── EMPTY STATE ─── */
-  .empty { text-align: center; padding: 48px 24px; color: var(--muted); }
-  .empty-icon { font-size: 32px; margin-bottom: 12px; }
+  /* ── EMPTY ── */
+  .empty { text-align: center; padding: 56px 24px; color: var(--muted); }
+  .empty-icon { font-size: 36px; margin-bottom: 14px; }
+  .empty p { font-size: 13px; }
 
-  /* ─── HOME CARDS ─── */
-  .home-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 32px; }
-  @media(max-width:500px){ .home-grid { grid-template-columns: 1fr; } }
+  /* ── HOME ── */
+  .home-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 28px; }
+  @media(max-width:480px){ .home-grid { grid-template-columns: 1fr; } }
   .home-card {
     background: var(--bg2);
     border: 1px solid var(--border);
     border-radius: var(--radius);
-    padding: 24px 20px;
+    padding: 28px 22px;
     cursor: pointer;
-    transition: box-shadow 0.2s, border-color 0.2s;
     text-align: center;
+    transition: border-color 0.2s, transform 0.15s, box-shadow 0.2s;
   }
   .home-card:hover {
     border-color: var(--pink);
-    box-shadow: 0 0 24px var(--pink-dim);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 32px var(--pink-dim);
   }
-  .home-card-icon { font-size: 30px; margin-bottom: 10px; }
-  .home-card-title {
-    font-family: 'Syne', sans-serif;
-    font-weight: 700;
-    font-size: 15px;
-    margin-bottom: 4px;
-  }
-  .home-card-desc { font-size: 11px; color: var(--muted); }
+  .home-card-icon { font-size: 32px; margin-bottom: 12px; }
+  .home-card-title { font-size: 15px; font-weight: 700; margin-bottom: 5px; }
+  .home-card-desc { font-size: 12px; color: var(--muted); }
 
-  /* ─── STREAK / STAT ─── */
-  .stat-row { display: flex; gap: 12px; margin-bottom: 24px; flex-wrap: wrap; }
+  /* ── STATS ── */
+  .stat-row { display: flex; gap: 12px; flex-wrap: wrap; }
   .stat-box {
-    flex: 1;
-    min-width: 100px;
+    flex: 1; min-width: 90px;
     background: var(--bg3);
     border: 1px solid var(--border);
-    border-radius: 10px;
-    padding: 14px 16px;
+    border-radius: var(--radius-sm);
+    padding: 16px;
     text-align: center;
   }
-  .stat-num {
-    font-family: 'Syne', sans-serif;
-    font-size: 24px;
-    font-weight: 800;
-    color: var(--pink);
-  }
-  .stat-lbl { font-size: 11px; color: var(--muted); margin-top: 2px; }
+  .stat-num { font-size: 26px; font-weight: 700; color: var(--pink); }
+  .stat-lbl { font-size: 11px; color: var(--muted); margin-top: 3px; }
 
-  /* ─── THOUGHT RECORD FORM ─── */
-  .tr-section {
-    border-left: 2px solid var(--border);
-    padding-left: 16px;
-    margin-bottom: 20px;
-  }
+  /* ── THOUGHT RECORD FORM ── */
+  .tr-section { margin-bottom: 24px; }
   .tr-section-title {
-    font-family: 'Syne', sans-serif;
-    font-size: 13px;
-    font-weight: 600;
-    color: var(--pink);
+    font-size: 12px; font-weight: 700; color: var(--pink);
+    text-transform: uppercase; letter-spacing: 1px;
     margin-bottom: 10px;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .tr-section-title::after {
+    content: ''; flex: 1; height: 1px;
+    background: var(--border);
   }
 
+  /* ── TAG ── */
   .tag {
     display: inline-block;
     background: var(--pink-dim);
     border: 1px solid var(--border);
-    border-radius: 4px;
+    border-radius: 50px;
     color: var(--pink);
-    font-size: 11px;
-    padding: 2px 8px;
+    font-size: 12px;
+    font-weight: 600;
+    padding: 3px 12px;
   }
+
+  /* ── SAVING FEEDBACK ── */
+  .btn[disabled] { opacity: 0.5; pointer-events: none; }
 </style>
 </head>
 <body>
 
-<!-- ═══════════════ LOGIN PAGE ═══════════════ -->
+<!-- LOGIN -->
 <div id="page-login" class="page">
   <div class="login-box">
-    <div class="login-title">therapy tracker</div>
-    <div class="login-sub">enter your name to continue</div>
+    <div class="login-logo">therapy tracker</div>
+    <div class="login-sub">enter your name to get started</div>
     <div class="field">
       <label>your name</label>
       <input type="text" id="login-input" placeholder="e.g. alex" autocomplete="off" />
     </div>
-    <button class="btn btn-solid btn-full" onclick="doLogin()">continue →</button>
+    <button class="btn btn-solid btn-full" id="login-btn">continue →</button>
   </div>
 </div>
 
-<!-- ═══════════════ MAIN APP ═══════════════ -->
+<!-- MAIN APP -->
 <div id="page-app" class="page">
   <div class="topbar">
     <div class="topbar-title">therapy tracker</div>
     <div style="display:flex;align-items:center;gap:14px;">
       <span class="topbar-user" id="topbar-username"></span>
-      <button class="btn btn-sm" onclick="doLogout()">logout</button>
+      <button class="btn btn-sm" id="logout-btn">logout</button>
     </div>
   </div>
-
   <div class="content">
     <div class="nav">
-      <button class="nav-tab active" onclick="showTab('home',this)">home</button>
-      <button class="nav-tab" onclick="showTab('relax',this)">relaxation</button>
-      <button class="nav-tab" onclick="showTab('thought',this)">thought record</button>
+      <button class="nav-tab active" data-tab="home">home</button>
+      <button class="nav-tab" data-tab="relax">relaxation</button>
+      <button class="nav-tab" data-tab="thought">thought record</button>
     </div>
 
-    <!-- ── HOME ── -->
+    <!-- HOME -->
     <div id="tab-home">
-      <div id="greeting" style="margin-bottom:24px;">
-        <div style="font-family:'Syne',sans-serif;font-size:22px;font-weight:800;margin-bottom:4px;" id="greeting-text"></div>
-        <div style="color:var(--muted);font-size:12px;" id="greeting-date"></div>
+      <div style="margin-bottom:28px;">
+        <div style="font-size:22px;font-weight:700;margin-bottom:4px;" id="greeting-text"></div>
+        <div style="color:var(--muted);font-size:13px;" id="greeting-date"></div>
       </div>
       <div class="home-grid">
-        <div class="home-card" onclick="showTab('relax', document.querySelectorAll('.nav-tab')[1])">
+        <div class="home-card" data-goto="relax">
           <div class="home-card-icon">🌿</div>
           <div class="home-card-title">Relaxation Log</div>
           <div class="home-card-desc">20 min daily · rate 1–10</div>
         </div>
-        <div class="home-card" onclick="showTab('thought', document.querySelectorAll('.nav-tab')[2])">
+        <div class="home-card" data-goto="thought">
           <div class="home-card-icon">🧠</div>
           <div class="home-card-title">Thought Record</div>
           <div class="home-card-desc">CBT diary · log & review</div>
@@ -456,48 +370,45 @@
       </div>
     </div>
 
-    <!-- ── RELAXATION ── -->
+    <!-- RELAXATION -->
     <div id="tab-relax" style="display:none;">
       <div class="section-head">
         <div class="section-title">Relaxation Log</div>
-        <button class="btn btn-solid btn-sm" onclick="openRelaxForm()">+ new entry</button>
+        <button class="btn btn-solid btn-sm" id="open-relax-form">+ new entry</button>
       </div>
-
-      <!-- chart -->
       <div class="card" id="relax-chart-card" style="display:none;">
         <div class="card-title">relaxation trend</div>
         <div class="chart-wrap"><canvas id="relaxChart"></canvas></div>
       </div>
-
       <div id="relax-list"></div>
     </div>
 
-    <!-- ── THOUGHT RECORD ── -->
+    <!-- THOUGHT RECORD -->
     <div id="tab-thought" style="display:none;">
       <div class="section-head">
         <div class="section-title">Thought Record</div>
-        <button class="btn btn-solid btn-sm" onclick="openThoughtForm()">+ new entry</button>
+        <button class="btn btn-solid btn-sm" id="open-thought-form">+ new entry</button>
       </div>
       <div id="thought-list"></div>
     </div>
   </div>
 </div>
 
-<!-- ═══════════════ RELAX FORM MODAL ═══════════════ -->
+<!-- RELAX FORM MODAL -->
 <div class="modal-overlay" id="modal-relax-form">
   <div class="modal">
     <div class="modal-head">
       <div class="modal-title">New Relaxation Entry</div>
-      <button class="modal-close" onclick="closeModal('modal-relax-form')">✕</button>
+      <button class="modal-close" data-close="modal-relax-form">✕</button>
     </div>
     <div class="field">
       <label>date</label>
-      <input type="text" id="rf-date" readonly />
+      <input type="date" id="rf-date" />
     </div>
     <div class="field">
       <label>how relaxed did you feel? (1–10)</label>
       <div class="rating-wrap">
-        <input type="range" min="1" max="10" value="5" id="rf-rating" oninput="document.getElementById('rf-rating-val').textContent=this.value" />
+        <input type="range" min="1" max="10" value="5" id="rf-rating" />
         <div class="rating-val" id="rf-rating-val">5</div>
       </div>
       <div class="field-hint">1 = heavy rumination / guilt &nbsp;·&nbsp; 10 = fully relaxed</div>
@@ -506,95 +417,82 @@
       <label>notes (optional)</label>
       <textarea id="rf-notes" placeholder="anything on your mind during or after the session…"></textarea>
     </div>
-    <button class="btn btn-solid btn-full" onclick="saveRelaxEntry()">save entry</button>
+    <button class="btn btn-solid btn-full" id="save-relax-btn">save entry</button>
   </div>
 </div>
 
-<!-- ═══════════════ RELAX DETAIL MODAL ═══════════════ -->
+<!-- RELAX DETAIL MODAL -->
 <div class="modal-overlay" id="modal-relax-detail">
   <div class="modal">
     <div class="modal-head">
       <div class="modal-title">Relaxation Entry</div>
-      <button class="modal-close" onclick="closeModal('modal-relax-detail')">✕</button>
+      <button class="modal-close" data-close="modal-relax-detail">✕</button>
     </div>
     <div id="relax-detail-content"></div>
+    <div style="margin-top:24px;padding-top:20px;border-top:1px solid rgba(255,61,133,0.1);">
+      <button class="btn btn-full" id="delete-relax-btn" style="border-color:#ff6b6b;color:#ff6b6b;">delete entry</button>
+    </div>
   </div>
 </div>
 
-<!-- ═══════════════ THOUGHT FORM MODAL ═══════════════ -->
+<!-- THOUGHT FORM MODAL -->
 <div class="modal-overlay" id="modal-thought-form">
   <div class="modal">
     <div class="modal-head">
       <div class="modal-title">New Thought Record</div>
-      <button class="modal-close" onclick="closeModal('modal-thought-form')">✕</button>
+      <button class="modal-close" data-close="modal-thought-form">✕</button>
     </div>
     <div class="field">
       <label>date</label>
-      <input type="text" id="tf-date" readonly />
+      <input type="date" id="tf-date" />
     </div>
-
     <div class="tr-section">
       <div class="tr-section-title">1 · Situation</div>
-      <div class="field">
-        <textarea id="tf-situation" placeholder="What happened? Where? When? Who with?"></textarea>
-      </div>
+      <textarea id="tf-situation" placeholder="What happened? Where? When? Who with?"></textarea>
     </div>
-
     <div class="tr-section">
       <div class="tr-section-title">2 · Unhelpful Thoughts / Images</div>
-      <div class="field">
-        <textarea id="tf-thoughts" placeholder="What went through your mind? What disturbed you? What did those thoughts/images mean to you? What 'button' is this pressing for you? What's the worst that could happen?"></textarea>
-      </div>
+      <textarea id="tf-thoughts" placeholder="What went through your mind? What disturbed you? What did those thoughts mean to you? What 'button' is this pressing? What's the worst that could happen?"></textarea>
     </div>
-
     <div class="tr-section">
       <div class="tr-section-title">3 · Feelings</div>
-      <div class="field">
-        <label>emotion(s) — rate each 0–100%</label>
-        <textarea id="tf-feelings" placeholder="e.g. Anger 80%, Contempt 60%… What emotion did you feel at that time? What did you feel in your body?"></textarea>
-      </div>
+      <textarea id="tf-feelings" placeholder="e.g. Anger 80%, Contempt 60%… What emotion did you feel? What did you feel in your body?"></textarea>
     </div>
-
     <div class="tr-section">
       <div class="tr-section-title">4 · Alternative / More Balanced Response</div>
-      <div class="field">
-        <textarea id="tf-alternative" placeholder="Am I looking through 'gloomy specs'? What would someone else say about this? Is my reaction in proportion to the actual event? Is this fact or opinion? What advice would I give someone else?"></textarea>
-      </div>
+      <textarea id="tf-alternative" placeholder="Am I looking through 'gloomy specs'? What would someone else say? Is my reaction in proportion to the event? Is this fact or opinion? What advice would I give someone else?"></textarea>
     </div>
-
     <div class="tr-section">
       <div class="tr-section-title">5 · What I Did / What Helped</div>
-      <div class="field">
-        <textarea id="tf-action" placeholder="What could I do differently? What would be more effective? What will be most helpful for me or the situation? What will the consequences be of doing or not doing…?"></textarea>
-      </div>
+      <textarea id="tf-action" placeholder="What could I do differently? What would be more effective? What will the consequences be of doing or not doing…?"></textarea>
     </div>
-
     <div class="tr-section">
       <div class="tr-section-title">6 · Re-rate Emotion</div>
-      <div class="field">
-        <textarea id="tf-rerate" placeholder="What am I feeling now? How intense is that feeling now? (0–100%)"></textarea>
-      </div>
+      <textarea id="tf-rerate" placeholder="What am I feeling now? How intense is that feeling now? (0–100%)"></textarea>
     </div>
-
-    <button class="btn btn-solid btn-full" onclick="saveThoughtEntry()">save entry</button>
+    <button class="btn btn-solid btn-full" id="save-thought-btn">save entry</button>
   </div>
 </div>
 
-<!-- ═══════════════ THOUGHT DETAIL MODAL ═══════════════ -->
+<!-- THOUGHT DETAIL MODAL -->
 <div class="modal-overlay" id="modal-thought-detail">
   <div class="modal">
     <div class="modal-head">
       <div class="modal-title">Thought Record</div>
-      <button class="modal-close" onclick="closeModal('modal-thought-detail')">✕</button>
+      <button class="modal-close" data-close="modal-thought-detail">✕</button>
     </div>
     <div id="thought-detail-content"></div>
+    <div style="margin-top:24px;padding-top:20px;border-top:1px solid rgba(255,61,133,0.1);">
+      <button class="btn btn-full" id="delete-thought-btn" style="border-color:#ff6b6b;color:#ff6b6b;">delete entry</button>
+    </div>
   </div>
 </div>
 
-<!-- ═══════════════ FIREBASE + APP LOGIC ═══════════════ -->
+<!-- FIREBASE (module) -->
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-app.js";
-  import { getFirestore, collection, addDoc, getDocs, query, orderBy } from "https://www.gstatic.com/firebasejs/12.13.0/firebase-firestore.js";
+  import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc, query, orderBy }
+    from "https://www.gstatic.com/firebasejs/12.13.0/firebase-firestore.js";
 
   const firebaseConfig = {
     apiKey: "AIzaSyAa1Vkbhum-Xh9y_Zwz5RMHd3H6J6pLBlY",
@@ -607,263 +505,299 @@
   };
 
   const app = initializeApp(firebaseConfig);
-  const db = getFirestore(app);
+  const db  = getFirestore(app);
 
   let currentUser = null;
-  let relaxChart = null;
+  let relaxChart  = null;
 
   // ── helpers ──
-  function fmtDate(ts) {
-    const d = ts ? new Date(ts) : new Date();
-    return d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+  const fmtDate = (isoStr) => {
+    // isoStr is like "2026-05-24", display as "24 May 2026"
+    const [y,m,d] = isoStr.split('-');
+    return new Date(y, m-1, d).toLocaleDateString('en-GB', { day:'2-digit', month:'short', year:'numeric' });
+  };
+  const todayISO = () => {
+    const d = new Date();
+    return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+  };
+  const nowISO = () => new Date().toISOString();
+
+  // ── modal helpers ──
+  const openModal  = id => document.getElementById(id).classList.add('open');
+  const closeModal = id => document.getElementById(id).classList.remove('open');
+
+  document.querySelectorAll('.modal-overlay').forEach(el => {
+    el.addEventListener('click', e => { if (e.target === el) el.classList.remove('open'); });
+  });
+  document.querySelectorAll('[data-close]').forEach(btn => {
+    btn.addEventListener('click', () => closeModal(btn.dataset.close));
+  });
+
+  // ── tab switching ──
+  function showTab(name) {
+    document.querySelectorAll('.nav-tab').forEach(t => {
+      t.classList.toggle('active', t.dataset.tab === name);
+    });
+    ['home','relax','thought'].forEach(t => {
+      document.getElementById('tab-' + t).style.display = t === name ? '' : 'none';
+    });
   }
-  function todayStr() { return fmtDate(Date.now()); }
-  function nowISO() { return new Date().toISOString(); }
+  document.querySelectorAll('.nav-tab').forEach(btn => {
+    btn.addEventListener('click', () => showTab(btn.dataset.tab));
+  });
+  document.querySelectorAll('[data-goto]').forEach(card => {
+    card.addEventListener('click', () => showTab(card.dataset.goto));
+  });
 
   // ── login / logout ──
-  window.doLogin = function() {
+  function startApp() {
+    document.getElementById('page-login').classList.remove('active');
+    document.getElementById('page-app').classList.add('active');
+    document.getElementById('topbar-username').textContent = currentUser;
+    const h = new Date().getHours();
+    const greet = h < 12 ? 'good morning' : h < 17 ? 'good afternoon' : 'good evening';
+    document.getElementById('greeting-text').textContent = `${greet}, ${currentUser}.`;
+    document.getElementById('greeting-date').textContent =
+      new Date().toLocaleDateString('en-GB', { weekday:'long', day:'numeric', month:'long', year:'numeric' });
+    loadAll();
+  }
+
+  document.getElementById('login-btn').addEventListener('click', () => {
     const val = document.getElementById('login-input').value.trim();
     if (!val) return;
-    currentUser = val.toLowerCase().replace(/\s+/g,'_');
+    currentUser = val.toLowerCase().replace(/\s+/g, '_');
     localStorage.setItem('tt_user', currentUser);
     startApp();
-  };
-  window.doLogout = function() {
+  });
+  document.getElementById('login-input').addEventListener('keydown', e => {
+    if (e.key === 'Enter') document.getElementById('login-btn').click();
+  });
+
+  document.getElementById('logout-btn').addEventListener('click', () => {
     localStorage.removeItem('tt_user');
     currentUser = null;
     document.getElementById('page-app').classList.remove('active');
     document.getElementById('page-login').classList.add('active');
     document.getElementById('login-input').value = '';
-  };
-
-  function startApp() {
-    document.getElementById('page-login').classList.remove('active');
-    document.getElementById('page-app').classList.add('active');
-    document.getElementById('topbar-username').textContent = currentUser;
-    setGreeting();
-    loadAll();
-  }
-
-  function setGreeting() {
-    const h = new Date().getHours();
-    const greet = h < 12 ? 'good morning' : h < 17 ? 'good afternoon' : 'good evening';
-    document.getElementById('greeting-text').textContent = `${greet}, ${currentUser}.`;
-    document.getElementById('greeting-date').textContent = new Date().toLocaleDateString('en-GB',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
-  }
-
-  // ── tab switching ──
-  window.showTab = function(name, btn) {
-    document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));
-    btn.classList.add('active');
-    document.getElementById('tab-home').style.display = name==='home' ? '' : 'none';
-    document.getElementById('tab-relax').style.display = name==='relax' ? '' : 'none';
-    document.getElementById('tab-thought').style.display = name==='thought' ? '' : 'none';
-  };
-
-  // ── modal helpers ──
-  window.closeModal = function(id) {
-    document.getElementById(id).classList.remove('open');
-  };
-  function openModal(id) {
-    document.getElementById(id).classList.add('open');
-  }
-  // close on overlay click
-  document.querySelectorAll('.modal-overlay').forEach(el => {
-    el.addEventListener('click', e => { if(e.target===el) el.classList.remove('open'); });
   });
 
-  // ──────────────────────────────────────────
+  // ────────────────────────────────────────
   // RELAXATION
-  // ──────────────────────────────────────────
-  window.openRelaxForm = function() {
-    document.getElementById('rf-date').value = todayStr();
+  // ────────────────────────────────────────
+  document.getElementById('open-relax-form').addEventListener('click', () => {
+    document.getElementById('rf-date').value = todayISO();
     document.getElementById('rf-rating').value = 5;
     document.getElementById('rf-rating-val').textContent = '5';
     document.getElementById('rf-notes').value = '';
     openModal('modal-relax-form');
-  };
+  });
 
-  window.saveRelaxEntry = async function() {
-    const entry = {
-      user: currentUser,
-      date: todayStr(),
-      ts: nowISO(),
-      rating: parseInt(document.getElementById('rf-rating').value),
-      notes: document.getElementById('rf-notes').value.trim()
-    };
-    await addDoc(collection(db, 'relaxation'), entry);
-    closeModal('modal-relax-form');
-    loadRelax();
-  };
+  document.getElementById('rf-rating').addEventListener('input', function() {
+    document.getElementById('rf-rating-val').textContent = this.value;
+  });
+
+  document.getElementById('save-relax-btn').addEventListener('click', async () => {
+    const btn = document.getElementById('save-relax-btn');
+    btn.textContent = 'saving…'; btn.disabled = true;
+    try {
+      const dateVal = document.getElementById('rf-date').value;
+      await addDoc(collection(db, 'relaxation'), {
+        user:   currentUser,
+        date:   fmtDate(dateVal),
+        dateISO: dateVal,
+        ts:     nowISO(),
+        rating: parseInt(document.getElementById('rf-rating').value),
+        notes:  document.getElementById('rf-notes').value.trim()
+      });
+      closeModal('modal-relax-form');
+      await loadRelax();
+    } catch(err) {
+      alert('Error saving: ' + err.message);
+    }
+    btn.textContent = 'save entry'; btn.disabled = false;
+  });
 
   async function loadRelax() {
-    const q = query(collection(db,'relaxation'), orderBy('ts','desc'));
-    const snap = await getDocs(q);
+    const snap = await getDocs(query(collection(db,'relaxation'), orderBy('ts','desc')));
     const all = [];
-    snap.forEach(d => { const data = d.data(); if(data.user===currentUser) all.push(data); });
+    snap.forEach(d => { const data = d.data(); if (data.user === currentUser) all.push({...data, _id: d.id}); });
 
-    // stats
-    document.getElementById('stat-relax-count').textContent = all.length;
-    if(all.length) {
-      const avg = (all.reduce((s,e)=>s+e.rating,0)/all.length).toFixed(1);
-      document.getElementById('stat-relax-avg').textContent = avg;
+    document.getElementById('stat-relax-count').textContent = all.length || '0';
+    document.getElementById('stat-relax-avg').textContent = all.length
+      ? (all.reduce((s,e) => s + e.rating, 0) / all.length).toFixed(1) : '—';
+
+    const chartCard = document.getElementById('relax-chart-card');
+    if (all.length > 1) {
+      chartCard.style.display = '';
+      const sorted = [...all].sort((a,b) => a.ts.localeCompare(b.ts)).slice(-20);
+      renderRelaxChart(sorted);
+    } else {
+      chartCard.style.display = 'none';
     }
 
-    // chart
-    const chartCard = document.getElementById('relax-chart-card');
-    if(all.length > 1) {
-      chartCard.style.display = '';
-      const sorted = [...all].sort((a,b)=>a.ts.localeCompare(b.ts)).slice(-20);
-      renderRelaxChart(sorted);
-    } else { chartCard.style.display='none'; }
-
-    // list
     const list = document.getElementById('relax-list');
-    if(!all.length) {
-      list.innerHTML = `<div class="empty"><div class="empty-icon">🌿</div><div>no entries yet.<br>log your first session!</div></div>`;
+    if (!all.length) {
+      list.innerHTML = `<div class="empty"><div class="empty-icon">🌿</div><p>no entries yet.<br>log your first session!</p></div>`;
       return;
     }
+    window._relaxEntries = all;
     list.innerHTML = all.map((e,i) => `
-      <div class="entry-item" onclick="showRelaxDetail(${i})">
+      <div class="entry-item" data-relax-i="${i}">
         <div class="entry-meta">
           <span class="entry-date">${e.date}</span>
-          <span class="entry-rating">${e.rating}<span style="font-size:12px;color:var(--muted)">/10</span></span>
+          <span class="entry-rating">${e.rating}<span style="font-size:13px;color:var(--muted);font-weight:400">/10</span></span>
         </div>
-        ${e.notes ? `<div class="entry-preview">${e.notes}</div>` : '<div class="entry-preview" style="color:var(--muted);font-style:italic;">no notes</div>'}
+        <div class="entry-preview">${e.notes || '<span style="font-style:italic">no notes</span>'}</div>
       </div>
     `).join('');
-
-    window._relaxEntries = all;
+    list.querySelectorAll('[data-relax-i]').forEach(el => {
+      el.addEventListener('click', () => {
+        const e = window._relaxEntries[el.dataset.relaxI];
+        window._currentRelaxId = e._id;
+        document.getElementById('relax-detail-content').innerHTML = `
+          <div class="detail-row"><div class="detail-label">date</div><div class="detail-val">${e.date}</div></div>
+          <div class="detail-row"><div class="detail-label">rating</div><div class="detail-val"><span class="tag">${e.rating} / 10</span></div></div>
+          <div class="detail-row"><div class="detail-label">notes</div><div class="detail-val">${e.notes || '—'}</div></div>
+        `;
+        openModal('modal-relax-detail');
+      });
+    });
   }
+
+  document.getElementById('delete-relax-btn').addEventListener('click', async () => {
+    if (!confirm('Are you sure you want to delete this entry? This cannot be undone.')) return;
+    try {
+      await deleteDoc(doc(db, 'relaxation', window._currentRelaxId));
+      closeModal('modal-relax-detail');
+      await loadRelax();
+    } catch(err) { alert('Error deleting: ' + err.message); }
+  });
 
   function renderRelaxChart(entries) {
     const ctx = document.getElementById('relaxChart').getContext('2d');
-    if(relaxChart) relaxChart.destroy();
+    if (relaxChart) relaxChart.destroy();
     relaxChart = new Chart(ctx, {
       type: 'line',
       data: {
-        labels: entries.map(e=>e.date),
+        labels: entries.map(e => e.date),
         datasets: [{
-          data: entries.map(e=>e.rating),
-          borderColor: '#ff2d78',
-          backgroundColor: 'rgba(255,45,120,0.08)',
-          pointBackgroundColor: '#ff2d78',
-          pointBorderColor: '#ff2d78',
-          pointRadius: 4,
-          tension: 0.4,
+          data: entries.map(e => e.rating),
+          borderColor: '#ff3d85',
+          backgroundColor: 'rgba(255,61,133,0.07)',
+          pointBackgroundColor: '#ff3d85',
+          pointBorderColor: '#ff3d85',
+          pointRadius: 5,
+          tension: 0.45,
           fill: true
         }]
       },
       options: {
-        responsive: true,
-        maintainAspectRatio: false,
+        responsive: true, maintainAspectRatio: false,
         plugins: { legend: { display: false } },
         scales: {
-          x: {
-            ticks: { color: '#666', font: { family: 'DM Mono', size: 10 }, maxRotation: 30 },
-            grid: { color: 'rgba(255,45,120,0.05)' }
-          },
-          y: {
-            min: 0, max: 10,
-            ticks: { color: '#666', font: { family: 'DM Mono', size: 11 }, stepSize: 2 },
-            grid: { color: 'rgba(255,45,120,0.07)' }
-          }
+          x: { ticks: { color:'#5a5a5a', font:{ family:'Comfortaa', size:10 }, maxRotation:30 }, grid:{ color:'rgba(255,61,133,0.05)' } },
+          y: { min:0, max:10, ticks:{ color:'#5a5a5a', font:{ family:'Comfortaa', size:11 }, stepSize:2 }, grid:{ color:'rgba(255,61,133,0.06)' } }
         }
       }
     });
   }
 
-  window.showRelaxDetail = function(i) {
-    const e = window._relaxEntries[i];
-    document.getElementById('relax-detail-content').innerHTML = `
-      <div class="detail-row"><div class="detail-label">date</div><div class="detail-val">${e.date}</div></div>
-      <div class="detail-row"><div class="detail-label">rating</div><div class="detail-val"><span class="tag">${e.rating} / 10</span></div></div>
-      <div class="detail-row"><div class="detail-label">notes</div><div class="detail-val">${e.notes || '—'}</div></div>
-    `;
-    openModal('modal-relax-detail');
-  };
-
-  // ──────────────────────────────────────────
+  // ────────────────────────────────────────
   // THOUGHT RECORD
-  // ──────────────────────────────────────────
-  window.openThoughtForm = function() {
-    document.getElementById('tf-date').value = todayStr();
-    ['tf-situation','tf-thoughts','tf-feelings','tf-alternative','tf-action','tf-rerate'].forEach(id=>{
-      document.getElementById(id).value='';
-    });
+  // ────────────────────────────────────────
+  document.getElementById('open-thought-form').addEventListener('click', () => {
+    document.getElementById('tf-date').value = todayISO();
+    ['tf-situation','tf-thoughts','tf-feelings','tf-alternative','tf-action','tf-rerate']
+      .forEach(id => { document.getElementById(id).value = ''; });
     openModal('modal-thought-form');
-  };
+  });
 
-  window.saveThoughtEntry = async function() {
-    const entry = {
-      user: currentUser,
-      date: todayStr(),
-      ts: nowISO(),
-      situation: document.getElementById('tf-situation').value.trim(),
-      thoughts: document.getElementById('tf-thoughts').value.trim(),
-      feelings: document.getElementById('tf-feelings').value.trim(),
-      alternative: document.getElementById('tf-alternative').value.trim(),
-      action: document.getElementById('tf-action').value.trim(),
-      rerate: document.getElementById('tf-rerate').value.trim()
-    };
-    await addDoc(collection(db,'thought_records'), entry);
-    closeModal('modal-thought-form');
-    loadThought();
-  };
+  document.getElementById('save-thought-btn').addEventListener('click', async () => {
+    const btn = document.getElementById('save-thought-btn');
+    btn.textContent = 'saving…'; btn.disabled = true;
+    try {
+      const dateVal = document.getElementById('tf-date').value;
+      await addDoc(collection(db, 'thought_records'), {
+        user:        currentUser,
+        date:        fmtDate(dateVal),
+        dateISO:     dateVal,
+        ts:          nowISO(),
+        situation:   document.getElementById('tf-situation').value.trim(),
+        thoughts:    document.getElementById('tf-thoughts').value.trim(),
+        feelings:    document.getElementById('tf-feelings').value.trim(),
+        alternative: document.getElementById('tf-alternative').value.trim(),
+        action:      document.getElementById('tf-action').value.trim(),
+        rerate:      document.getElementById('tf-rerate').value.trim()
+      });
+      closeModal('modal-thought-form');
+      await loadThought();
+    } catch(err) {
+      alert('Error saving: ' + err.message);
+    }
+    btn.textContent = 'save entry'; btn.disabled = false;
+  });
 
   async function loadThought() {
-    const q = query(collection(db,'thought_records'), orderBy('ts','desc'));
-    const snap = await getDocs(q);
+    const snap = await getDocs(query(collection(db,'thought_records'), orderBy('ts','desc')));
     const all = [];
-    snap.forEach(d => { const data = d.data(); if(data.user===currentUser) all.push(data); });
+    snap.forEach(d => { const data = d.data(); if (data.user === currentUser) all.push({...data, _id: d.id}); });
 
-    document.getElementById('stat-thought-count').textContent = all.length;
+    document.getElementById('stat-thought-count').textContent = all.length || '0';
 
     const list = document.getElementById('thought-list');
-    if(!all.length) {
-      list.innerHTML = `<div class="empty"><div class="empty-icon">🧠</div><div>no thought records yet.</div></div>`;
+    if (!all.length) {
+      list.innerHTML = `<div class="empty"><div class="empty-icon">🧠</div><p>no thought records yet.</p></div>`;
       return;
     }
+    window._thoughtEntries = all;
     list.innerHTML = all.map((e,i) => `
-      <div class="entry-item" onclick="showThoughtDetail(${i})">
+      <div class="entry-item" data-thought-i="${i}">
         <div class="entry-meta">
           <span class="entry-date">${e.date}</span>
         </div>
         <div class="entry-preview">${e.situation || e.thoughts || '—'}</div>
       </div>
     `).join('');
-
-    window._thoughtEntries = all;
+    list.querySelectorAll('[data-thought-i]').forEach(el => {
+      el.addEventListener('click', () => {
+        const e = window._thoughtEntries[el.dataset.thoughtI];
+        window._currentThoughtId = e._id;
+        const rows = [
+          ['date', e.date],
+          ['situation', e.situation],
+          ['unhelpful thoughts / images', e.thoughts],
+          ['feelings', e.feelings],
+          ['alternative / balanced response', e.alternative],
+          ['what i did / what helped', e.action],
+          ['re-rated emotion', e.rerate]
+        ];
+        document.getElementById('thought-detail-content').innerHTML = rows.map(([label,val]) => `
+          <div class="detail-row">
+            <div class="detail-label">${label}</div>
+            <div class="detail-val">${val || '—'}</div>
+          </div>
+        `).join('');
+        openModal('modal-thought-detail');
+      });
+    });
   }
 
-  window.showThoughtDetail = function(i) {
-    const e = window._thoughtEntries[i];
-    const rows = [
-      ['date', e.date],
-      ['situation', e.situation],
-      ['unhelpful thoughts / images', e.thoughts],
-      ['feelings', e.feelings],
-      ['alternative / balanced response', e.alternative],
-      ['what i did / what helped', e.action],
-      ['re-rated emotion', e.rerate]
-    ];
-    document.getElementById('thought-detail-content').innerHTML = rows.map(([label,val])=>`
-      <div class="detail-row">
-        <div class="detail-label">${label}</div>
-        <div class="detail-val">${val || '—'}</div>
-      </div>
-    `).join('');
-    openModal('modal-thought-detail');
-  };
+  document.getElementById('delete-thought-btn').addEventListener('click', async () => {
+    if (!confirm('Are you sure you want to delete this thought record? This cannot be undone.')) return;
+    try {
+      await deleteDoc(doc(db, 'thought_records', window._currentThoughtId));
+      closeModal('modal-thought-detail');
+      await loadThought();
+    } catch(err) { alert('Error deleting: ' + err.message); }
+  });
 
-  // ── load all ──
   async function loadAll() {
     await Promise.all([loadRelax(), loadThought()]);
   }
 
   // ── auto login ──
   const saved = localStorage.getItem('tt_user');
-  if(saved) {
+  if (saved) {
     currentUser = saved;
     document.getElementById('login-input').value = saved;
     startApp();
