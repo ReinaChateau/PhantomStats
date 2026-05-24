@@ -26,6 +26,7 @@
   body { background: var(--black); color: var(--text); font-family: 'DM Sans', sans-serif; min-height: 100vh; overflow-x: hidden; }
 
   body::before { content: ''; position: fixed; top: -200px; right: -200px; width: 500px; height: 500px; background: conic-gradient(from 45deg, transparent 0deg, var(--red-glow) 20deg, transparent 40deg); pointer-events: none; z-index: 0; }
+  .theme-crow body::before, body.theme-crow::before { background: conic-gradient(from 45deg, transparent 0deg, rgba(204,16,16,0.08) 20deg, transparent 40deg); }
 
   .particles { position: fixed; inset: 0; pointer-events: none; z-index: 0; display: none; }
   .particles.on { display: block; }
@@ -38,6 +39,27 @@
   @keyframes cardDrift { 0% { opacity:0; transform:translateY(0) rotate(-10deg) scale(0.8); } 15% { opacity:0.5; } 85% { opacity:0.2; } 100% { opacity:0; transform:translateY(-100vh) rotate(15deg) scale(1); } }
   .particle.matrix { color: var(--red); font-size: 13px; font-family: monospace; font-weight: bold; animation: matrixDrift linear infinite; line-height: 1; }
   @keyframes matrixDrift { 0% { opacity:0; transform:translateY(-20px); } 10% { opacity:0.8; } 90% { opacity:0.2; } 100% { opacity:0; transform:translateY(100vh); } }
+
+  /* Unlockable backgrounds */
+  .particle.noir-rose { font-size: 16px; animation: roseDrift linear infinite; }
+  @keyframes roseDrift { 0% { opacity:0; transform:translateY(0) rotate(0deg) scale(0.6); } 15% { opacity:0.55; } 85% { opacity:0.2; } 100% { opacity:0; transform:translateY(-100vh) rotate(180deg) scale(1.1); } }
+
+  /* Fox / Inari / Amaterasu background */
+  .particle.fox-torii { color: #FF6622; font-size: 18px; animation: toriiRise linear infinite; }
+  @keyframes toriiRise { 0% { opacity:0; transform:translateY(20px) scale(0.7); } 10% { opacity:0.55; } 85% { opacity:0.15; } 100% { opacity:0; transform:translateY(-100vh) scale(1.1); } }
+  .particle.fox-kanji { color: #FFD066; font-size: 20px; font-family: serif; font-weight: 900; animation: kanjiFloat linear infinite; }
+  @keyframes kanjiFloat { 0% { opacity:0; transform:translateY(0) rotate(-5deg); } 12% { opacity:0.65; } 80% { opacity:0.1; } 100% { opacity:0; transform:translateY(-100vh) rotate(8deg); } }
+  .particle.fox-spirit { font-size: 14px; animation: foxDrift linear infinite; }
+  @keyframes foxDrift { 0% { opacity:0; transform:translateY(0) scale(0.5); } 15% { opacity:0.7; } 50% { transform:translateY(-50vh) translateX(20px); } 85% { opacity:0.2; } 100% { opacity:0; transform:translateY(-100vh) translateX(-10px) scale(1.2); } }
+
+  /* Crow / Akechi duality background */
+  .particle.crow-mask { font-size: 16px; animation: maskFloat linear infinite; }
+  @keyframes maskFloat { 0% { opacity:0; transform:translateY(0) scale(0.8) rotate(-5deg); } 10% { opacity:0.65; } 45% { opacity:0.6; transform:translateY(-45vh) scale(1) rotate(0deg); } 55% { opacity:0; } 60% { opacity:0.7; } 85% { opacity:0.15; } 100% { opacity:0; transform:translateY(-100vh) scale(0.9) rotate(10deg); } }
+  .particle.crow-flip { font-size: 16px; animation: flipReveal linear infinite; }
+  @keyframes flipReveal { 0% { opacity:0; transform:rotateY(0deg) scale(0.8); } 10% { opacity:0.65; } 48% { opacity:0.65; transform:rotateY(0deg) scale(1); } 52% { opacity:0.65; transform:rotateY(90deg) scale(1); } 56% { opacity:0.65; transform:rotateY(180deg) scale(1); } 85% { opacity:0.2; } 100% { opacity:0; transform:translateY(-80vh) rotateY(180deg) scale(0.7); } }
+
+  .particle.wolf-eye { color: #00B8A0; font-size: 11px; font-family: monospace; font-weight: bold; animation: wolfDrift linear infinite; }
+  @keyframes wolfDrift { 0% { opacity:0; transform:translateY(0) scale(0.5); } 10% { opacity:0.7; transform:scale(1.1); } 50% { opacity:0.3; } 100% { opacity:0; transform:translateY(-100vh) scale(0.4); } }
 
   .app { max-width: 780px; margin: 0 auto; padding: 40px 20px 80px; position: relative; z-index: 1; }
 
@@ -94,6 +116,8 @@
   .theme-btn { background: var(--surface3); border: 0.5px solid var(--border); border-radius: 3px; color: var(--text-mid); font-family: 'DM Sans', sans-serif; font-size: 11px; padding: 4px 10px; cursor: pointer; transition: background 0.15s, border-color 0.15s, color 0.15s; letter-spacing: 0.05em; }
   .theme-btn:hover { color: var(--text); }
   .theme-btn.active { border-color: var(--red); color: var(--red); }
+  .theme-btn.theme-locked-btn { opacity: 0.38; cursor: not-allowed; }
+  .theme-btn.theme-locked-btn.theme-unlocked { opacity: 1; cursor: pointer; }
 
   /* Theme bundles */
   .theme-bundle { display: flex; align-items: center; gap: 6px; overflow: hidden; }
@@ -106,7 +130,8 @@
   .theme-royal .stat-card::after, .theme-velvet .stat-card::after, .theme-purple .stat-card::after,
   .theme-coffee .stat-card::after, .theme-treehouse .stat-card::after,
   .theme-ember .stat-card::after, .theme-hacker .stat-card::after, .theme-sakura .stat-card::after,
-  .theme-tidecaller .stat-card::after, .theme-glacier .stat-card::after { content: ''; position: absolute; inset: 0; pointer-events: none; }
+  .theme-tidecaller .stat-card::after, .theme-glacier .stat-card::after,
+  .theme-noir .stat-card::after, .theme-fox .stat-card::after, .theme-crow .stat-card::after, .theme-wolf .stat-card::after { content: ''; position: absolute; inset: 0; pointer-events: none; }
   .theme-royal .stat-card::after { background: radial-gradient(circle at 20% 15%, rgba(255,60,60,0.12), transparent 65%); }
   .theme-velvet .stat-card::after { background: radial-gradient(circle at 20% 15%, rgba(60,120,255,0.12), transparent 65%); }
   .theme-purple .stat-card::after { background: radial-gradient(circle at 20% 15%, rgba(180,60,255,0.12), transparent 65%); }
@@ -117,6 +142,28 @@
   .theme-sakura .stat-card::after { background: radial-gradient(circle at 20% 15%, rgba(255,100,160,0.12), transparent 65%); }
   .theme-tidecaller .stat-card::after { background: radial-gradient(circle at 20% 15%, rgba(0,210,180,0.11), transparent 65%); }
   .theme-glacier .stat-card::after { background: radial-gradient(circle at 20% 15%, rgba(140,200,255,0.12), transparent 65%); }
+  .theme-noir .stat-card::after { background: radial-gradient(circle at 20% 15%, rgba(255,24,200,0.22), transparent 60%); }
+  .theme-fox .stat-card::after { background: radial-gradient(circle at 20% 15%, rgba(0,136,255,0.20), transparent 60%); }
+  .theme-crow .stat-card::after { background: radial-gradient(circle at 20% 15%, rgba(180,20,20,0.09), transparent 60%); }
+  .theme-wolf .stat-card::after { background: radial-gradient(circle at 20% 15%, rgba(0,220,200,0.18), transparent 60%); }
+
+  /* Unlockable theme/bg items in settings */
+  .unlock-section-title { font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--text-dim); font-weight: 500; margin-bottom: 4px; margin-top: 24px; }
+  .unlock-subtitle { font-size: 11px; color: var(--text-dim); margin-bottom: 12px; line-height: 1.5; }
+  .unlock-grid { display: flex; flex-direction: column; gap: 8px; margin-bottom: 8px; }
+  .unlock-item { display: flex; align-items: center; justify-content: space-between; padding: 10px 12px; border: 0.5px solid var(--border); border-radius: 4px; transition: border-color 0.15s; position: relative; overflow: hidden; }
+  .unlock-item.unlocked { cursor: pointer; }
+  .unlock-item.unlocked:hover { border-color: var(--border-red); }
+  .unlock-item.active-unlock { border-color: var(--red); }
+  .unlock-item.locked { opacity: 0.4; cursor: default; }
+  .unlock-item-left { display: flex; flex-direction: column; gap: 2px; }
+  .unlock-item-name { font-size: 13px; color: var(--text-mid); font-weight: 500; }
+  .unlock-item.unlocked .unlock-item-name { color: var(--text); }
+  .unlock-item-sub { font-size: 10px; color: var(--text-dim); letter-spacing: 0.08em; }
+  .unlock-item-req { font-size: 10px; color: var(--text-dim); letter-spacing: 0.08em; white-space: nowrap; }
+  .unlock-item.unlocked .unlock-item-req { color: var(--red); }
+  .unlock-swatch { display: flex; gap: 4px; align-items: center; }
+  .unlock-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
 
   .colour-picker-label { font-size: 10px; letter-spacing: 0.15em; color: var(--text-dim); text-transform: uppercase; font-weight: 500; }
   .colour-picker-input { width: 28px; height: 28px; border: 0.5px solid var(--border); border-radius: 3px; background: none; cursor: pointer; padding: 2px; }
@@ -362,6 +409,15 @@
               <button class="theme-btn" data-theme="glacier">Glacier</button>
             </div>
           </div>
+          <div class="theme-bundle" id="bundle3">
+            <button class="bundle-toggle" data-bundle="bundle3">🔒 Phantom</button>
+            <div class="bundle-themes" id="phantomThemeButtons">
+              <button class="theme-btn theme-locked-btn" data-theme="noir" data-req="150">Noir</button>
+              <button class="theme-btn theme-locked-btn" data-theme="fox" data-req="200">Fox</button>
+              <button class="theme-btn theme-locked-btn" data-theme="crow" data-req="250">Crow</button>
+              <button class="theme-btn theme-locked-btn" data-theme="wolf" data-req="300">Wolf</button>
+            </div>
+          </div>
         </div>
         <div class="colour-picker-wrap">
           <span class="colour-picker-label">Accent</span>
@@ -446,6 +502,14 @@
   <p style="font-size:11px;color:var(--text-dim);margin-bottom:10px;">Unlock titles by reaching EXP milestones. Select one to display it.</p>
   <div class="rank-list" id="rankList"></div>
   <button class="option-btn" id="clearRankBtn" style="margin-top:4px">None</button>
+
+  <div class="unlock-section-title">Unlockable Themes</div>
+  <p class="unlock-subtitle">Earn EXP to unlock Phantom Thief themes. Click an unlocked theme to apply it.</p>
+  <div class="unlock-grid" id="unlockThemeList"></div>
+
+  <div class="unlock-section-title">Unlockable Backgrounds</div>
+  <p class="unlock-subtitle">Unlock animated Metaverse backgrounds for each Phantom Thief.</p>
+  <div class="unlock-grid" id="unlockBgList"></div>
 
   <div class="settings-section-title">Custom Categories</div>
   <p style="font-size:11px;color:var(--text-dim);margin-bottom:12px;">Add your own stat categories. Choose big (full card) or small (compact card).</p>
@@ -546,6 +610,20 @@ const RANKS = [
 ];
 
 const QUOTES = ["Your mind shapes your reality.","Learn how to tune out the noise."];
+
+// Unlockable themes and backgrounds
+const UNLOCKABLE_THEMES = [
+  { key:'noir',  name:'Noir',  char:'Haru · Noir', req:150, swatches:['#0A0014','#FF18C8','#431C62','#FFE0FF'] },
+  { key:'fox',   name:'Fox',   char:'Yusuke · Fox', req:200, swatches:['#000005','#0088FF','#FFFFFF','#050525'] },
+  { key:'crow',  name:'Crow',  char:'Akechi · Robin Hood', req:250, swatches:['#F5F0E8','#CC1010','#D6CCAE','#0A0604'] },
+  { key:'wolf',  name:'Wolf',  char:'Zenkichi · Wolf', req:300, swatches:['#010809','#00DCC8','#C8F8F5','#07282C'] },
+];
+const UNLOCKABLE_BGS = [
+  { key:'noir-roses',  name:'Noir — Roses',      char:'Haru · Noir',         req:150, color:'#FF18C8' },
+  { key:'fox-brush',   name:'Fox — Inari Shrine', char:'Yusuke · Fox',         req:200, color:'#FF6622' },
+  { key:'crow-feather',name:'Crow — Two Faces',   char:'Akechi · Robin Hood', req:250, color:'#CC1010' },
+  { key:'wolf-eye',    name:'Wolf — Eyes',        char:'Zenkichi · Wolf',      req:300, color:'#00DCC8' },
+];
 
 const APP_VERSION = 3;
 
@@ -694,6 +772,7 @@ async function handleLogin() {
       buildCustomGrid();
       renderLog();
       updateRankTitle();
+      updatePhantomThemeBtns(Object.values(stats).reduce((a,b)=>a+b,0));
       const savedTheme=localStorage.getItem('lifeStats_theme');
       if(savedTheme)applyTheme(savedTheme);
       if(orphans.length > 0) scheduleSave(); // persist the resolved state
@@ -801,6 +880,9 @@ function updateTotal(){
   const total=Object.values(stats).reduce((a,b)=>a+b,0);
   document.getElementById('totalVal').textContent=total;
   buildRankList(total);updateWeekly();
+  updatePhantomThemeBtns(total);
+  // Refresh unlock lists if settings is open
+  if(document.getElementById('settingsPanel').classList.contains('open'))buildUnlockLists(total);
 }
 
 function updateRankTitle(){
@@ -1066,7 +1148,7 @@ function applyAnimBg(on,type){
     const CARD_SYMBOLS=['♠','♥','♦','♣','🃟','A','K','Q','J'];
     const STAR_SYMBOLS=['★','✦','✧','✩','✪'];
     const MATRIX_CHARS='アイウエオカキクケコサシスセソタチツテトナニヌネノ0123456789';
-    const count=bgType==='matrix'?60:40;
+    const count=bgType==='matrix'?60:bgType==='fox-brush'||bgType==='crow-feather'?50:40;
     for(let i=0;i<count;i++){
       const dot=document.createElement('div');
       dot.style.left=Math.random()*100+'vw';
@@ -1075,7 +1157,75 @@ function applyAnimBg(on,type){
       if(bgType==='stars'){dot.className='particle star';dot.textContent=STAR_SYMBOLS[Math.floor(Math.random()*STAR_SYMBOLS.length)];dot.style.animationDuration=(6+Math.random()*10)+'s';dot.style.fontSize=(10+Math.random()*14)+'px';}
       else if(bgType==='cards'){dot.className='particle card';dot.textContent=CARD_SYMBOLS[Math.floor(Math.random()*CARD_SYMBOLS.length)];dot.style.animationDuration=(7+Math.random()*8)+'s';dot.style.fontSize=(14+Math.random()*16)+'px';}
       else if(bgType==='matrix'){dot.className='particle matrix';dot.textContent=MATRIX_CHARS[Math.floor(Math.random()*MATRIX_CHARS.length)];dot.style.animationDuration=(3+Math.random()*6)+'s';dot.style.top='-20px';}
-      else{dot.className='particle dots';dot.style.width=(1+Math.random()*3)+'px';dot.style.height=dot.style.width;dot.style.animationDuration=(6+Math.random()*10)+'s';}
+      else if(bgType==='noir-roses'){
+        dot.className='particle noir-rose';
+        dot.style.left=Math.random()*100+'vw';
+        dot.style.top=(80+Math.random()*20)+'vh';
+        const roses=['🌸','🌹','✿','❀','🌺'];
+        dot.textContent=roses[Math.floor(Math.random()*roses.length)];
+        dot.style.animationDuration=(8+Math.random()*10)+'s';
+        dot.style.fontSize=(12+Math.random()*14)+'px';
+        dot.style.filter='hue-rotate('+(Math.random()*40-20)+'deg)';
+      } else if(bgType==='fox-brush'){
+        // Inari / Amaterasu — torii, fox spirits, kanji
+        const foxTypes=['torii','kanji','spirit'];
+        const fType=foxTypes[Math.floor(Math.random()*foxTypes.length)];
+        if(fType==='torii'){
+          dot.className='particle fox-torii';
+          dot.textContent=['⛩️','🏮','🔴','⭕'][Math.floor(Math.random()*4)];
+          dot.style.fontSize=(14+Math.random()*14)+'px';
+          dot.style.animationDuration=(9+Math.random()*9)+'s';
+        } else if(fType==='kanji'){
+          dot.className='particle fox-kanji';
+          const kanji=['稲','荷','狐','火','光','天','照','神','霊','術'];
+          dot.textContent=kanji[Math.floor(Math.random()*kanji.length)];
+          dot.style.fontSize=(16+Math.random()*18)+'px';
+          dot.style.animationDuration=(7+Math.random()*8)+'s';
+        } else {
+          dot.className='particle fox-spirit';
+          dot.textContent=['🦊','🔥','✨','💙'][Math.floor(Math.random()*4)];
+          dot.style.fontSize=(12+Math.random()*10)+'px';
+          dot.style.animationDuration=(8+Math.random()*10)+'s';
+        }
+        dot.style.left=Math.random()*100+'vw';
+        dot.style.top=(70+Math.random()*35)+'vh';
+        dot.style.animationDelay='-'+(Math.random()*14)+'s';
+      } else if(bgType==='crow-feather'){
+        // Akechi duality — noble facade that "flips" to reveal dark side
+        const crowTypes=['noble','dark','pancake'];
+        const cType=crowTypes[Math.floor(Math.random()*crowTypes.length)];
+        // noble symbols = facade (justice, detective, prince)
+        const nobleSyms=['⚖️','👑','🏆','🔍','☀️','🌟'];
+        // dark symbols = true self (evil, mask, murder)
+        const darkSyms=['🎭','💀','🃏','🖤','⛓️','🔪'];
+        // pancakes because yes
+        const pancakeSyms=['🥞','☕','🍳'];
+        if(cType==='pancake'){
+          dot.className='particle crow-mask';
+          dot.textContent=pancakeSyms[Math.floor(Math.random()*pancakeSyms.length)];
+        } else if(cType==='noble'){
+          dot.className='particle crow-mask';
+          dot.textContent=nobleSyms[Math.floor(Math.random()*nobleSyms.length)];
+        } else {
+          // The flip — starts as noble, mid-animation CSS flips to dark
+          dot.className='particle crow-flip';
+          dot.style.setProperty('--noble', '"'+nobleSyms[Math.floor(Math.random()*nobleSyms.length)]+'"');
+          dot.textContent=darkSyms[Math.floor(Math.random()*darkSyms.length)];
+        }
+        dot.style.left=Math.random()*100+'vw';
+        dot.style.top=Math.random()*100+'vh';
+        dot.style.fontSize=(14+Math.random()*12)+'px';
+        dot.style.animationDuration=(6+Math.random()*10)+'s';
+        dot.style.animationDelay='-'+(Math.random()*14)+'s';
+      } else if(bgType==='wolf-eye'){
+        dot.className='particle wolf-eye';
+        dot.style.left=Math.random()*100+'vw';
+        dot.style.top=Math.random()*100+'vh';
+        const eyeChars=['◈','⬡','◇','⬟','▣','◉'];
+        dot.textContent=eyeChars[Math.floor(Math.random()*eyeChars.length)];
+        dot.style.animationDuration=(4+Math.random()*7)+'s';
+        dot.style.fontSize=(9+Math.random()*11)+'px';
+      } else{dot.className='particle dots';dot.style.width=(1+Math.random()*3)+'px';dot.style.height=dot.style.width;dot.style.animationDuration=(6+Math.random()*10)+'s';}
       p.appendChild(dot);
     }
   }
@@ -1106,6 +1256,11 @@ const THEMES = {
   sakura:     { black:'#120810', surface:'#1C0F1A', surface2:'#271525', surface3:'#321C30', border:'rgba(255,160,200,0.08)', text:'#FFE8F4', textDim:'rgba(255,232,244,0.4)', textMid:'rgba(255,232,244,0.65)', accent:'#D4608A' },
   tidecaller: { black:'#010D0D', surface:'#051616', surface2:'#092020', surface3:'#0E2B2B', border:'rgba(0,210,180,0.08)', text:'#D4F5F0', textDim:'rgba(212,245,240,0.4)', textMid:'rgba(212,245,240,0.65)', accent:'#00C4A0' },
   glacier:    { black:'#060C12', surface:'#0C1520', surface2:'#121E2E', surface3:'#18273C', border:'rgba(140,200,255,0.08)', text:'#E4F2FF', textDim:'rgba(228,242,255,0.4)', textMid:'rgba(228,242,255,0.65)', accent:'#4A9ECC' },
+  // Unlockable Phantom Thief themes
+  noir:       { black:'#0A0014', surface:'#2A1040', surface2:'#361550', surface3:'#431C62', border:'rgba(255,60,200,0.14)', text:'#FFE0FF', textDim:'rgba(255,220,255,0.45)', textMid:'rgba(255,220,255,0.72)', accent:'#FF18C8', unlockReq:150 },
+  fox:        { black:'#000005', surface:'#02020F', surface2:'#030318', surface3:'#050525', border:'rgba(0,140,255,0.12)', text:'#FFFFFF', textDim:'rgba(255,255,255,0.38)', textMid:'rgba(255,255,255,0.68)', accent:'#0088FF', unlockReq:200 },
+  crow:       { black:'#F5F0E8', surface:'#EDE6D6', surface2:'#E2D9C4', surface3:'#D6CCAE', border:'rgba(160,20,20,0.15)', text:'#0A0604', textDim:'rgba(10,6,4,0.45)', textMid:'rgba(10,6,4,0.72)', accent:'#CC1010', unlockReq:250 },
+  wolf:       { black:'#010809', surface:'#031214', surface2:'#051D20', surface3:'#07282C', border:'rgba(0,220,200,0.11)', text:'#C8F8F5', textDim:'rgba(200,248,245,0.38)', textMid:'rgba(200,248,245,0.68)', accent:'#00DCC8', unlockReq:300 },
 };
 
 function applyTheme(name){
@@ -1120,6 +1275,10 @@ function applyTheme(name){
   if(t.accent){
     applyAccent(t.accent);
     if(name==='royal'){root.style.setProperty('--red','#E63946');root.style.setProperty('--red-dim','#7A0C14');root.style.setProperty('--border-red','rgba(230,57,70,0.35)');root.style.setProperty('--red-glow','rgba(230,57,70,0.18)');}
+    if(name==='crow'){root.style.setProperty('--red-glow','rgba(204,16,16,0.10)');root.style.setProperty('--border-red','rgba(204,16,16,0.25)');}
+    if(name==='noir'){root.style.setProperty('--red-glow','rgba(255,24,200,0.22)');root.style.setProperty('--border-red','rgba(255,24,200,0.45)');}
+    if(name==='fox'){root.style.setProperty('--red-glow','rgba(0,136,255,0.22)');root.style.setProperty('--border-red','rgba(0,136,255,0.4)');}
+    if(name==='wolf'){root.style.setProperty('--red-glow','rgba(0,220,200,0.20)');root.style.setProperty('--border-red','rgba(0,220,200,0.38)');}
     if(name==='coffee'){root.style.setProperty('--red-glow','rgba(107,42,8,0.22)');root.style.setProperty('--border-red','rgba(107,42,8,0.4)');}
     if(name==='treehouse'){root.style.setProperty('--red-glow','rgba(122,64,16,0.22)');root.style.setProperty('--border-red','rgba(122,64,16,0.4)');}
     document.getElementById('colourPicker').value=t.accent;
@@ -1168,7 +1327,10 @@ document.getElementById('clearBtn').addEventListener('click',()=>{
   renderLog();scheduleSave();
 });
 
-document.querySelectorAll('.theme-btn').forEach(btn=>{btn.addEventListener('click',()=>applyTheme(btn.dataset.theme));});
+document.querySelectorAll('.theme-btn').forEach(btn=>{btn.addEventListener('click',()=>{
+  if(btn.classList.contains('theme-locked-btn')&&!btn.classList.contains('theme-unlocked'))return;
+  applyTheme(btn.dataset.theme);
+});});
 
 document.querySelectorAll('.bundle-toggle').forEach(btn=>{
   btn.addEventListener('click',()=>{
@@ -1182,7 +1344,66 @@ document.querySelectorAll('.bundle-toggle').forEach(btn=>{
   });
 });
 
-function openSettings(){document.getElementById('settingsPanel').classList.add('open');document.getElementById('settingsOverlay').classList.add('open');buildRankList(Object.values(stats).reduce((a,b)=>a+b,0));}
+function updatePhantomThemeBtns(total){
+  document.querySelectorAll('.theme-locked-btn').forEach(btn=>{
+    const req=parseInt(btn.dataset.req||'9999');
+    const isUnlocked=total>=req;
+    btn.classList.toggle('theme-unlocked',isUnlocked);
+    btn.title=isUnlocked?'':`Unlock at ${req} EXP`;
+  });
+}
+
+function buildUnlockLists(total){
+  // Themes
+  const tList=document.getElementById('unlockThemeList');
+  if(!tList)return;
+  tList.innerHTML='';
+  const currentTheme=localStorage.getItem('lifeStats_theme')||'default';
+  UNLOCKABLE_THEMES.forEach(t=>{
+    const unlocked=total>=t.req;
+    const active=currentTheme===t.key;
+    const div=document.createElement('div');
+    div.className='unlock-item'+(unlocked?' unlocked':'  locked')+(active?' active-unlock':'');
+    div.innerHTML=`<div class="unlock-item-left">
+      <span class="unlock-item-name">${t.name}</span>
+      <span class="unlock-item-sub">${t.char}</span>
+    </div>
+    <div style="display:flex;align-items:center;gap:10px">
+      <div class="unlock-swatch">${t.swatches.map(c=>`<div class="unlock-dot" style="background:${c}"></div>`).join('')}</div>
+      <span class="unlock-item-req">${unlocked?'✓ Unlocked':t.req+' EXP'}</span>
+    </div>`;
+    if(unlocked){div.addEventListener('click',()=>{applyTheme(t.key);buildUnlockLists(total);});}
+    tList.appendChild(div);
+  });
+  // Backgrounds
+  const bList=document.getElementById('unlockBgList');
+  if(!bList)return;
+  bList.innerHTML='';
+  UNLOCKABLE_BGS.forEach(b=>{
+    const unlocked=total>=b.req;
+    const active=settings.bgStyle===b.key;
+    const div=document.createElement('div');
+    div.className='unlock-item'+(unlocked?' unlocked':'  locked')+(active?' active-unlock':'');
+    div.innerHTML=`<div class="unlock-item-left">
+      <span class="unlock-item-name">${b.name}</span>
+      <span class="unlock-item-sub">${b.char}</span>
+    </div>
+    <div style="display:flex;align-items:center;gap:10px">
+      <div class="unlock-dot" style="width:14px;height:14px;background:${b.color};box-shadow:0 0 6px ${b.color}55"></div>
+      <span class="unlock-item-req">${unlocked?'✓ Unlocked':b.req+' EXP'}</span>
+    </div>`;
+    if(unlocked){div.addEventListener('click',()=>{
+      const isOn=document.getElementById('toggleAnimBg').checked;
+      document.getElementById('particles').innerHTML='';
+      applyAnimBg(isOn||true,b.key);
+      document.getElementById('toggleAnimBg').checked=true;
+      buildUnlockLists(total);scheduleSave();
+    });}
+    bList.appendChild(div);
+  });
+}
+
+function openSettings(){document.getElementById('settingsPanel').classList.add('open');document.getElementById('settingsOverlay').classList.add('open');const total=Object.values(stats).reduce((a,b)=>a+b,0);buildRankList(total);buildUnlockLists(total);}
 function closeSettings(){document.getElementById('settingsPanel').classList.remove('open');document.getElementById('settingsOverlay').classList.remove('open');}
 document.getElementById('settingsBtn').addEventListener('click',openSettings);
 document.getElementById('settingsClose').addEventListener('click',closeSettings);
