@@ -1,0 +1,1214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Life Stats Tracker</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --red: #D42B2B;
+    --red-dim: #9E1F1F;
+    --red-glow: rgba(212,43,43,0.18);
+    --black: #0A0A0A;
+    --surface: #141414;
+    --surface2: #1C1C1C;
+    --surface3: #242424;
+    --border: rgba(255,255,255,0.07);
+    --border-red: rgba(212,43,43,0.35);
+    --text: #F0EDE8;
+    --text-dim: rgba(240,237,232,0.45);
+    --text-mid: rgba(240,237,232,0.7);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body { background: var(--black); color: var(--text); font-family: 'DM Sans', sans-serif; min-height: 100vh; overflow-x: hidden; }
+
+  body::before { content: ''; position: fixed; top: -200px; right: -200px; width: 500px; height: 500px; background: conic-gradient(from 45deg, transparent 0deg, var(--red-glow) 20deg, transparent 40deg); pointer-events: none; z-index: 0; }
+
+  .particles { position: fixed; inset: 0; pointer-events: none; z-index: 0; display: none; }
+  .particles.on { display: block; }
+  .particle { position: absolute; opacity: 0; animation: particleDrift linear infinite; }
+  .particle.dots { width: 2px; height: 2px; background: var(--red); border-radius: 50%; }
+  @keyframes particleDrift { 0% { opacity:0; transform:translateY(0) scale(1); } 10% { opacity:0.4; } 90% { opacity:0.1; } 100% { opacity:0; transform:translateY(-100vh) scale(0.5); } }
+  .particle.star { color: var(--red); font-size: 14px; animation: starDrift linear infinite; }
+  @keyframes starDrift { 0% { opacity:0; transform:translateY(0) rotate(0deg) scale(0.5); } 15% { opacity:0.7; } 85% { opacity:0.3; } 100% { opacity:0; transform:translateY(-100vh) rotate(360deg) scale(1.2); } }
+  .particle.card { color: var(--red); font-size: 18px; animation: cardDrift linear infinite; }
+  @keyframes cardDrift { 0% { opacity:0; transform:translateY(0) rotate(-10deg) scale(0.8); } 15% { opacity:0.5; } 85% { opacity:0.2; } 100% { opacity:0; transform:translateY(-100vh) rotate(15deg) scale(1); } }
+  .particle.matrix { color: var(--red); font-size: 13px; font-family: monospace; font-weight: bold; animation: matrixDrift linear infinite; line-height: 1; }
+  @keyframes matrixDrift { 0% { opacity:0; transform:translateY(-20px); } 10% { opacity:0.8; } 90% { opacity:0.2; } 100% { opacity:0; transform:translateY(100vh); } }
+
+  .app { max-width: 780px; margin: 0 auto; padding: 40px 20px 80px; position: relative; z-index: 1; }
+
+  /* Login */
+  .login-screen { min-height: 100vh; display: flex; align-items: center; justify-content: center; position: relative; z-index: 1; }
+  .login-box { width: 100%; max-width: 380px; padding: 20px; }
+  .login-eyebrow { font-size: 11px; letter-spacing: 0.2em; color: var(--red); text-transform: uppercase; margin-bottom: 4px; font-weight: 500; }
+  .login-title { font-family: 'Bebas Neue', sans-serif; font-size: 52px; line-height: 1; letter-spacing: 0.03em; color: var(--text); margin-bottom: 32px; border-bottom: 1px solid var(--border-red); padding-bottom: 20px; }
+  .login-title span { color: var(--red); }
+  .login-label { font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--text-dim); font-weight: 500; display: block; margin-bottom: 10px; }
+  .login-input { width: 100%; background: var(--surface3); border: 0.5px solid var(--border); border-radius: 3px; color: var(--text); font-family: 'DM Sans', sans-serif; font-size: 15px; padding: 12px 14px; outline: none; transition: border-color 0.15s; margin-bottom: 12px; letter-spacing: 0.05em; }
+  .login-input:focus { border-color: var(--border-red); }
+  .login-input::placeholder { color: var(--text-dim); }
+  .login-btn { width: 100%; background: var(--red); border: none; border-radius: 3px; color: var(--text); font-family: 'Bebas Neue', sans-serif; font-size: 20px; letter-spacing: 0.1em; padding: 12px; cursor: pointer; transition: background 0.15s, transform 0.1s; }
+  .login-btn:hover { background: #b82525; }
+  .login-btn:active { transform: scale(0.97); }
+  .login-error { font-size: 12px; color: #e06060; margin-top: 8px; text-align: center; min-height: 18px; }
+  .login-hint { font-size: 12px; color: var(--text-dim); margin-top: 12px; text-align: center; line-height: 1.6; }
+
+  /* Loading */
+  .loading-overlay { display: none; position: fixed; inset: 0; background: var(--black); z-index: 50; align-items: center; justify-content: center; flex-direction: column; gap: 14px; }
+  .loading-overlay.show { display: flex; }
+  .loading-text { font-family: 'Bebas Neue', sans-serif; font-size: 18px; letter-spacing: 0.15em; color: var(--text-dim); }
+  .loading-bar-track { width: 160px; height: 2px; background: var(--surface3); border-radius: 1px; overflow: hidden; }
+  .loading-bar-fill { height: 100%; background: var(--red); border-radius: 1px; animation: loadPulse 1.2s ease-in-out infinite; }
+  @keyframes loadPulse { 0% { width:0%;margin-left:0; } 50% { width:60%;margin-left:20%; } 100% { width:0%;margin-left:100%; } }
+
+  .main-app { display: none; }
+  .main-app.show { display: block; }
+
+  .daily-quote { display: none; font-size: 12px; color: var(--text-dim); font-style: italic; text-align: center; padding: 10px 20px; border-bottom: 0.5px solid var(--border); letter-spacing: 0.03em; position: relative; z-index: 1; }
+  .daily-quote.on { display: block; }
+
+  /* Header */
+  .header { display: flex; align-items: flex-end; justify-content: space-between; margin-bottom: 40px; border-bottom: 1px solid var(--border-red); padding-bottom: 20px; }
+  .title-eyebrow { font-size: 11px; letter-spacing: 0.2em; color: var(--red); text-transform: uppercase; margin-bottom: 4px; font-weight: 500; }
+  h1 { font-family: 'Bebas Neue', sans-serif; font-size: 52px; line-height: 1; letter-spacing: 0.03em; color: var(--text); }
+  h1 span { color: var(--red); }
+  .header-right { display: flex; flex-direction: column; align-items: flex-end; gap: 10px; }
+  .header-top-row { display: flex; align-items: center; gap: 14px; }
+  .username-tag { font-size: 11px; letter-spacing: 0.1em; color: var(--text-dim); text-transform: uppercase; }
+  .username-tag span { color: var(--red); }
+
+  .rank-title { font-size: 10px; letter-spacing: 0.15em; text-transform: uppercase; font-weight: 500; background: linear-gradient(90deg, #b8860b, #ffd700, #b8860b, #ffd700); background-size: 200% auto; -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; animation: goldShine 3s linear infinite; display: none; }
+  .rank-title.visible { display: block; }
+  @keyframes goldShine { 0% { background-position:0% center; } 100% { background-position:200% center; } }
+
+  .logout-btn, .settings-btn { background: none; border: 0.5px solid var(--border); border-radius: 3px; color: var(--text-dim); font-family: 'DM Sans', sans-serif; font-size: 11px; padding: 4px 10px; cursor: pointer; transition: color 0.15s, border-color 0.15s; letter-spacing: 0.05em; }
+  .logout-btn:hover, .settings-btn:hover { color: var(--text); border-color: var(--border-red); }
+
+  .colour-picker-wrap { display: flex; align-items: center; gap: 8px; }
+  .theme-switcher { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; justify-content: flex-end; max-width: 560px; }
+  .theme-label { font-size: 10px; letter-spacing: 0.15em; color: var(--text-dim); text-transform: uppercase; font-weight: 500; }
+  .theme-btn { background: var(--surface3); border: 0.5px solid var(--border); border-radius: 3px; color: var(--text-mid); font-family: 'DM Sans', sans-serif; font-size: 11px; padding: 4px 10px; cursor: pointer; transition: background 0.15s, border-color 0.15s, color 0.15s; letter-spacing: 0.05em; }
+  .theme-btn:hover { color: var(--text); }
+  .theme-btn.active { border-color: var(--red); color: var(--red); }
+
+  /* Theme bundles */
+  .theme-bundle { display: flex; align-items: center; gap: 6px; overflow: hidden; }
+  .bundle-toggle { background: var(--surface3); border: 0.5px solid var(--border-red); border-radius: 3px; color: var(--red); font-family: 'DM Sans', sans-serif; font-size: 11px; padding: 4px 10px; cursor: pointer; transition: background 0.15s, border-color 0.15s, color 0.15s; letter-spacing: 0.05em; white-space: nowrap; flex-shrink: 0; }
+  .bundle-toggle:hover { background: var(--surface2); }
+  .bundle-toggle.open { border-color: var(--red); }
+  .bundle-themes { display: flex; align-items: center; gap: 6px; max-width: 0; overflow: hidden; transition: max-width 0.4s cubic-bezier(0.34,1.2,0.64,1), opacity 0.3s ease; opacity: 0; flex-wrap: nowrap; }
+  .theme-bundle.open .bundle-themes { max-width: 600px; opacity: 1; }
+
+  .theme-royal .stat-card::after, .theme-velvet .stat-card::after, .theme-purple .stat-card::after,
+  .theme-coffee .stat-card::after, .theme-treehouse .stat-card::after,
+  .theme-ember .stat-card::after, .theme-hacker .stat-card::after, .theme-sakura .stat-card::after,
+  .theme-tidecaller .stat-card::after, .theme-glacier .stat-card::after { content: ''; position: absolute; inset: 0; pointer-events: none; }
+  .theme-royal .stat-card::after { background: radial-gradient(circle at 20% 15%, rgba(255,60,60,0.12), transparent 65%); }
+  .theme-velvet .stat-card::after { background: radial-gradient(circle at 20% 15%, rgba(60,120,255,0.12), transparent 65%); }
+  .theme-purple .stat-card::after { background: radial-gradient(circle at 20% 15%, rgba(180,60,255,0.12), transparent 65%); }
+  .theme-coffee .stat-card::after { background: radial-gradient(circle at top left, rgba(254,228,168,0.07), transparent 60%); }
+  .theme-treehouse .stat-card::after { background: radial-gradient(circle at 20% 15%, rgba(120,64,16,0.18), transparent 65%); }
+  .theme-ember .stat-card::after { background: radial-gradient(circle at 20% 15%, rgba(255,140,0,0.14), transparent 65%); }
+  .theme-hacker .stat-card::after { background: radial-gradient(circle at 20% 15%, rgba(0,255,70,0.10), transparent 65%); }
+  .theme-sakura .stat-card::after { background: radial-gradient(circle at 20% 15%, rgba(255,100,160,0.12), transparent 65%); }
+  .theme-tidecaller .stat-card::after { background: radial-gradient(circle at 20% 15%, rgba(0,210,180,0.11), transparent 65%); }
+  .theme-glacier .stat-card::after { background: radial-gradient(circle at 20% 15%, rgba(140,200,255,0.12), transparent 65%); }
+
+  .colour-picker-label { font-size: 10px; letter-spacing: 0.15em; color: var(--text-dim); text-transform: uppercase; font-weight: 500; }
+  .colour-picker-input { width: 28px; height: 28px; border: 0.5px solid var(--border); border-radius: 3px; background: none; cursor: pointer; padding: 2px; }
+  .total-label { font-size: 11px; letter-spacing: 0.15em; color: var(--text-dim); text-transform: uppercase; }
+  .total-value { font-family: 'Bebas Neue', sans-serif; font-size: 40px; color: var(--red); line-height: 1; }
+
+  /* Settings Panel */
+  .settings-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 200; backdrop-filter: blur(2px); }
+  .settings-overlay.open { display: block; }
+  .settings-panel { position: fixed; top: 0; right: -420px; width: 400px; max-width: 95vw; height: 100vh; background: var(--surface); border-left: 0.5px solid var(--border-red); z-index: 201; overflow-y: auto; transition: right 0.3s cubic-bezier(0.34,1.56,0.64,1); padding: 30px 24px 60px; }
+  .settings-panel.open { right: 0; }
+  .settings-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 28px; border-bottom: 0.5px solid var(--border-red); padding-bottom: 16px; }
+  .settings-title { font-family: 'Bebas Neue', sans-serif; font-size: 28px; letter-spacing: 0.05em; color: var(--red); }
+  .settings-close { background: none; border: none; color: var(--text-dim); font-size: 18px; cursor: pointer; transition: color 0.15s; font-family: 'DM Sans', sans-serif; }
+  .settings-close:hover { color: var(--red); }
+  .settings-section-title { font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--text-dim); font-weight: 500; margin-bottom: 12px; margin-top: 24px; }
+
+  .toggle-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+  .toggle-label { font-size: 13px; color: var(--text-mid); }
+  .toggle { position: relative; width: 36px; height: 20px; flex-shrink: 0; }
+  .toggle input { opacity: 0; width: 0; height: 0; }
+  .toggle-track { position: absolute; inset: 0; background: var(--surface3); border-radius: 10px; cursor: pointer; transition: background 0.2s; border: 0.5px solid var(--border); }
+  .toggle-track::after { content: ''; position: absolute; top: 3px; left: 3px; width: 12px; height: 12px; background: var(--text-dim); border-radius: 50%; transition: transform 0.2s, background 0.2s; }
+  .toggle input:checked + .toggle-track { background: var(--red); border-color: var(--red); }
+  .toggle input:checked + .toggle-track::after { transform: translateX(16px); background: var(--text); }
+
+  .option-group { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px; }
+  .option-btn { background: var(--surface3); border: 0.5px solid var(--border); border-radius: 3px; color: var(--text-mid); font-family: 'DM Sans', sans-serif; font-size: 12px; padding: 6px 12px; cursor: pointer; transition: border-color 0.15s, color 0.15s; letter-spacing: 0.05em; }
+  .option-btn:hover { color: var(--text); }
+  .option-btn.active { border-color: var(--red); color: var(--red); }
+
+  .settings-input { width: 100%; background: var(--surface3); border: 0.5px solid var(--border); border-radius: 3px; color: var(--text); font-family: 'DM Sans', sans-serif; font-size: 13px; padding: 8px 12px; outline: none; transition: border-color 0.15s; margin-bottom: 8px; }
+  .settings-input:focus { border-color: var(--border-red); }
+  .settings-input::placeholder { color: var(--text-dim); }
+  .settings-save-btn { background: var(--red); border: none; border-radius: 3px; color: var(--text); font-family: 'Bebas Neue', sans-serif; font-size: 16px; letter-spacing: 0.1em; padding: 8px 18px; cursor: pointer; transition: background 0.15s; }
+  .settings-save-btn:hover { background: #b82525; }
+
+  /* Rank picker */
+  .rank-list { display: flex; flex-direction: column; gap: 6px; margin-bottom: 8px; }
+  .rank-option { display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; border: 0.5px solid var(--border); border-radius: 3px; cursor: pointer; transition: border-color 0.15s; }
+  .rank-option:hover { border-color: var(--border-red); }
+  .rank-option.active { border-color: var(--red); }
+  .rank-option.locked { opacity: 0.35; cursor: default; }
+  .rank-option.locked:hover { border-color: var(--border); }
+  .rank-option-name { font-size: 13px; background: linear-gradient(90deg, #b8860b, #ffd700, #b8860b, #ffd700); background-size: 200% auto; -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; animation: goldShine 3s linear infinite; font-weight: 500; }
+  .rank-option-req { font-size: 10px; color: var(--text-dim); letter-spacing: 0.08em; }
+
+  /* Weekly summary */
+  .weekly-summary { display: none; background: var(--surface); border: 0.5px solid var(--border); border-radius: 4px; padding: 16px; margin-bottom: 28px; }
+  .weekly-summary.on { display: block; }
+  .weekly-title { font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--text-dim); font-weight: 500; margin-bottom: 12px; }
+  .weekly-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+  .weekly-item { display: flex; flex-direction: column; gap: 2px; }
+  .weekly-item-label { font-size: 10px; color: var(--text-dim); }
+  .weekly-item-val { font-family: 'Bebas Neue', sans-serif; font-size: 22px; color: var(--red); line-height: 1; }
+
+  /* Stats grid */
+  .stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 28px; }
+  .stats-grid.compact { gap: 6px; }
+  .stats-grid.compact .stat-card { padding: 10px 10px 8px; }
+  .stats-grid.compact .stat-value { font-size: 26px; margin-bottom: 4px; }
+  .stats-grid.compact .stat-icon { display: none; }
+
+  /* Custom small stats grid */
+  .custom-grid-section { margin-bottom: 28px; }
+  .custom-grid-label { font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--text-dim); font-weight: 500; margin-bottom: 10px; }
+  .custom-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+  .custom-card { background: var(--surface); border: 0.5px solid var(--border); border-radius: 4px; padding: 10px 12px 8px; position: relative; overflow: hidden; }
+  .custom-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: var(--red); transform: scaleX(0); transform-origin: left; transition: transform 0.4s cubic-bezier(0.34,1.56,0.64,1); }
+  .custom-card.flash::before { transform: scaleX(1); transition: none; }
+  .custom-card-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px; }
+  .custom-card-name { font-size: 9px; letter-spacing: 0.15em; text-transform: uppercase; color: var(--text-dim); font-weight: 500; }
+  .custom-card-icon { font-size: 12px; opacity: 0.7; }
+  .custom-card-value { font-family: 'Bebas Neue', sans-serif; font-size: 28px; line-height: 1; color: var(--text); margin-bottom: 6px; }
+  .custom-bar-track { height: 2px; background: var(--surface3); border-radius: 1px; margin-bottom: 4px; overflow: hidden; }
+  .custom-bar-fill { height: 100%; background: var(--red); border-radius: 1px; transition: width 0.6s cubic-bezier(0.34,1.56,0.64,1); }
+  .custom-card-bottom { display: flex; justify-content: space-between; align-items: center; }
+  .custom-card-rank { font-size: 9px; color: var(--red); text-transform: uppercase; letter-spacing: 0.1em; font-weight: 500; }
+  .custom-card-info-btn { background: none; border: none; color: var(--text-dim); cursor: pointer; font-size: 10px; padding: 1px 3px; transition: color 0.15s; font-family: 'DM Sans', sans-serif; }
+  .custom-card-info-btn:hover { color: var(--text); }
+
+  .stat-card { background: var(--surface); border: 0.5px solid var(--border); border-radius: 4px; padding: 16px 14px 12px; position: relative; overflow: hidden; transition: border-color 0.2s; }
+  .stat-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: var(--red); transform: scaleX(0); transform-origin: left; transition: transform 0.4s cubic-bezier(0.34,1.56,0.64,1); }
+  .stat-card.flash::before { transform: scaleX(1); transition: none; }
+  .stat-card.flash { border-color: var(--border-red); animation: cardPop 0.5s ease forwards; }
+  @keyframes cardPop { 0% { background:var(--surface); } 20% { background:#1f0d0d; } 100% { background:var(--surface); } }
+
+  .stat-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+  .stat-name { font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--text-dim); font-weight: 500; }
+  .stat-icon { font-size: 14px; opacity: 0.7; }
+  .stat-value { font-family: 'Bebas Neue', sans-serif; font-size: 38px; line-height: 1; color: var(--text); margin-bottom: 8px; transition: color 0.2s; }
+  .stat-card.flash .stat-value { color: var(--red); }
+
+  .bar-track { height: 2px; background: var(--surface3); border-radius: 1px; margin-bottom: 6px; overflow: hidden; }
+  .bar-fill { height: 100%; background: var(--red); border-radius: 1px; transition: width 0.6s cubic-bezier(0.34,1.56,0.64,1); }
+  .animated-bars .bar-fill, .animated-bars .custom-bar-fill { animation: barPulse 2s ease-in-out infinite; }
+  @keyframes barPulse { 0%,100% { opacity:1; filter:brightness(1.4); } 50% { opacity:0.5; filter:brightness(0.6); } }
+
+  .stat-bottom { display: flex; justify-content: space-between; align-items: center; }
+  .stat-rank-wrap { display: flex; flex-direction: column; gap: 2px; }
+  .stat-rank { font-size: 10px; color: var(--red); text-transform: uppercase; letter-spacing: 0.1em; font-weight: 500; }
+  .hygiene-count { font-size: 10px; color: rgba(240,237,232,0.3); }
+  .info-btn { background: none; border: none; color: var(--text-dim); cursor: pointer; font-size: 11px; padding: 2px 4px; letter-spacing: 0.05em; transition: color 0.15s; font-family: 'DM Sans', sans-serif; }
+  .info-btn:hover { color: var(--text); }
+
+  /* Info panel */
+  .info-panel { display: none; background: var(--surface2); border: 0.5px solid var(--border-red); border-radius: 4px; padding: 16px; margin-bottom: 10px; position: relative; animation: fadeDown 0.18s ease; }
+  @keyframes fadeDown { from { opacity:0; transform:translateY(-4px); } to { opacity:1; transform:translateY(0); } }
+  .info-panel.open { display: block; }
+  .info-panel-header { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+  .info-panel-icon { font-size: 18px; }
+  .info-panel-name { font-family: 'Bebas Neue', sans-serif; font-size: 22px; letter-spacing: 0.05em; color: var(--red); }
+  .info-panel-desc { font-size: 13px; color: var(--text-mid); line-height: 1.6; margin-bottom: 12px; }
+  .info-examples-label { font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--text-dim); margin-bottom: 6px; font-weight: 500; }
+  .info-examples { list-style: none; display: flex; flex-direction: column; gap: 4px; }
+  .info-examples li { font-size: 12px; color: var(--text-mid); padding-left: 14px; position: relative; line-height: 1.5; }
+  .info-examples li::before { content: '—'; position: absolute; left: 0; color: var(--red); font-size: 10px; }
+  .close-btn { position: absolute; top: 12px; right: 12px; background: none; border: none; color: var(--text-dim); cursor: pointer; font-size: 16px; line-height: 1; transition: color 0.15s; font-family: 'DM Sans', sans-serif; }
+  .close-btn:hover { color: var(--red); }
+
+  /* Win history move button */
+  .win-move-select { background: var(--surface3); border: 0.5px solid var(--border); border-radius: 3px; color: var(--text-mid); font-family: 'DM Sans', sans-serif; font-size: 11px; padding: 2px 6px; cursor: pointer; outline: none; }
+  .win-move-select option { background: var(--surface2); }
+
+  /* Log form */
+  .log-form { background: var(--surface); border: 0.5px solid var(--border); border-radius: 4px; padding: 20px; margin-bottom: 28px; }
+  .form-label { font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--text-dim); font-weight: 500; display: block; margin-bottom: 10px; }
+  .points-selector { display: flex; gap: 6px; margin-bottom: 10px; align-items: center; }
+  .points-label { font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--text-dim); font-weight: 500; margin-right: 4px; }
+  .pts-btn { background: var(--surface3); border: 0.5px solid var(--border); border-radius: 3px; color: var(--text-mid); font-family: 'Bebas Neue', sans-serif; font-size: 16px; width: 34px; height: 34px; cursor: pointer; transition: background 0.12s, border-color 0.12s, color 0.12s; letter-spacing: 0.05em; }
+  .pts-btn:hover { background: var(--surface2); color: var(--text); }
+  .pts-btn.active { background: var(--red); border-color: var(--red); color: var(--text); }
+  .form-row { display: flex; gap: 10px; }
+  .form-input { flex: 1; background: var(--surface3); border: 0.5px solid var(--border); border-radius: 3px; color: var(--text); font-family: 'DM Sans', sans-serif; font-size: 14px; padding: 10px 14px; outline: none; transition: border-color 0.15s; }
+  .form-input:focus { border-color: var(--border-red); }
+  .form-input::placeholder { color: var(--text-dim); }
+  .form-select { background: var(--surface3); border: 0.5px solid var(--border); border-radius: 3px; color: var(--text); font-family: 'DM Sans', sans-serif; font-size: 13px; padding: 10px 12px; outline: none; cursor: pointer; transition: border-color 0.15s; min-width: 150px; }
+  .form-select:focus { border-color: var(--border-red); }
+  .form-select option { background: var(--surface2); }
+  .log-btn { background: var(--red); border: none; border-radius: 3px; color: var(--text); font-family: 'Bebas Neue', sans-serif; font-size: 18px; letter-spacing: 0.1em; padding: 10px 22px; cursor: pointer; transition: background 0.15s, transform 0.1s; white-space: nowrap; }
+  .log-btn:hover { background: #b82525; }
+  .log-btn:active { transform: scale(0.97); }
+  .save-indicator { font-size: 11px; color: var(--text-dim); letter-spacing: 0.08em; margin-top: 8px; min-height: 16px; transition: color 0.3s; }
+  .save-indicator.saving { color: var(--red); }
+  .save-indicator.saved { color: rgba(100,200,100,0.8); }
+
+  .plus-float { position: fixed; font-family: 'Bebas Neue', sans-serif; font-size: 28px; color: var(--red); pointer-events: none; z-index: 999; animation: floatUp 0.9s ease forwards; }
+  @keyframes floatUp { 0% { opacity:1; transform:translateY(0) scale(1); } 100% { opacity:0; transform:translateY(-60px) scale(1.3); } }
+
+  .log-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+  .log-section-title { font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--text-dim); font-weight: 500; }
+  .clear-btn { background: none; border: none; font-size: 11px; color: var(--text-dim); cursor: pointer; font-family: 'DM Sans', sans-serif; transition: color 0.15s; letter-spacing: 0.05em; }
+  .clear-btn:hover { color: var(--red); }
+  .log-list { list-style: none; display: flex; flex-direction: column; gap: 6px; }
+  .log-item { display: flex; align-items: center; gap: 12px; background: var(--surface); border: 0.5px solid var(--border); border-radius: 3px; padding: 10px 14px; animation: slideIn 0.2s ease; }
+  @keyframes slideIn { from { opacity:0; transform:translateX(-8px); } to { opacity:1; transform:translateX(0); } }
+  .log-icon { font-size: 14px; flex-shrink: 0; }
+  .log-desc { flex: 1; font-size: 13px; color: var(--text-mid); line-height: 1.4; }
+  .log-tag { font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--red); font-weight: 500; flex-shrink: 0; }
+  .log-gain { font-family: 'Bebas Neue', sans-serif; font-size: 16px; color: var(--red); flex-shrink: 0; min-width: 24px; text-align: right; }
+  .log-date { font-size: 10px; color: var(--text-dim); flex-shrink: 0; letter-spacing: 0.05em; }
+  .log-delete-btn { background: none; border: none; color: var(--text-dim); cursor: pointer; font-size: 14px; padding: 0 0 0 8px; line-height: 1; transition: color 0.15s; flex-shrink: 0; }
+  .log-delete-btn:hover { color: #e06060; }
+  .empty-log { font-size: 13px; color: var(--text-dim); text-align: center; padding: 30px; border: 0.5px dashed var(--border); border-radius: 3px; }
+
+  .milestone-banner { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%) translateY(80px); background: var(--red); color: var(--text); font-family: 'Bebas Neue', sans-serif; font-size: 20px; letter-spacing: 0.15em; padding: 12px 30px; border-radius: 2px; z-index: 100; transition: transform 0.4s cubic-bezier(0.34,1.56,0.64,1); pointer-events: none; white-space: nowrap; }
+  .milestone-banner.show { transform: translateX(-50%) translateY(0); }
+
+  /* Add category form in settings */
+  .add-cat-form { display: flex; flex-direction: column; gap: 8px; margin-bottom: 16px; }
+  .add-cat-row { display: flex; gap: 8px; }
+  .custom-cat-list { display: flex; flex-direction: column; gap: 6px; }
+  .custom-cat-item { display: flex; align-items: center; justify-content: space-between; padding: 6px 10px; background: var(--surface2); border-radius: 3px; border: 0.5px solid var(--border); font-size: 12px; color: var(--text-mid); }
+  .custom-cat-delete { background: none; border: none; color: var(--text-dim); cursor: pointer; font-size: 13px; transition: color 0.15s; font-family: 'DM Sans', sans-serif; }
+  .custom-cat-delete:hover { color: #e06060; }
+
+  @media (max-width: 600px) {
+    .stats-grid, .custom-grid { grid-template-columns: repeat(2, 1fr); }
+    h1, .login-title { font-size: 38px; }
+    .form-row { flex-wrap: wrap; }
+    .form-select { min-width: 100%; }
+    .log-btn { width: 100%; }
+    .settings-panel { width: 100%; }
+  }
+</style>
+</head>
+<body>
+
+<div class="particles" id="particles"></div>
+<div class="daily-quote" id="dailyQuote"></div>
+
+<div class="loading-overlay" id="loadingOverlay">
+  <div class="loading-text">Loading...</div>
+  <div class="loading-bar-track"><div class="loading-bar-fill"></div></div>
+</div>
+
+<div class="login-screen" id="loginScreen">
+  <div class="login-box">
+    <div class="login-eyebrow">Welcome to</div>
+    <div class="login-title">Life <span>Stats</span></div>
+    <label class="login-label">Enter your username</label>
+    <input class="login-input" id="usernameInput" placeholder="e.g. joker" maxlength="32" autocomplete="off" />
+    <button class="login-btn" id="loginBtn">Enter</button>
+    <div class="login-error" id="loginError"></div>
+    <p class="login-hint">New username? We'll create your save automatically.<br>Returning? Your progress loads right away.</p>
+  </div>
+</div>
+
+<div class="main-app" id="mainApp">
+  <div class="app">
+    <div class="header">
+      <div class="title-block">
+        <div class="title-eyebrow">sup</div>
+        <h1>Life <span>Stats</span></h1>
+      </div>
+      <div class="header-right">
+        <div class="header-top-row">
+          <span class="username-tag">Playing as <span id="displayUsername"></span></span>
+          <button class="settings-btn" id="settingsBtn">⚙ Settings</button>
+          <button class="logout-btn" id="logoutBtn">Log out</button>
+        </div>
+        <div class="rank-title" id="rankTitle"></div>
+        <div class="theme-switcher">
+          <span class="theme-label">Theme</span>
+          <div class="theme-bundle" id="bundle1">
+            <button class="bundle-toggle" data-bundle="bundle1">Bundle 1</button>
+            <div class="bundle-themes">
+              <button class="theme-btn active" data-theme="default">Default</button>
+              <button class="theme-btn" data-theme="purple">Revelations</button>
+              <button class="theme-btn" data-theme="velvet">Velvet Room</button>
+              <button class="theme-btn" data-theme="royal">Royal</button>
+              <button class="theme-btn" data-theme="coffee">Coffee</button>
+              <button class="theme-btn" data-theme="treehouse">Treehouse</button>
+            </div>
+          </div>
+          <div class="theme-bundle" id="bundle2">
+            <button class="bundle-toggle" data-bundle="bundle2">Bundle 2</button>
+            <div class="bundle-themes">
+              <button class="theme-btn" data-theme="ember">Ember</button>
+              <button class="theme-btn" data-theme="hacker">Hacker</button>
+              <button class="theme-btn" data-theme="sakura">Sakura</button>
+              <button class="theme-btn" data-theme="tidecaller">Tidecaller</button>
+              <button class="theme-btn" data-theme="glacier">Glacier</button>
+            </div>
+          </div>
+        </div>
+        <div class="colour-picker-wrap">
+          <span class="colour-picker-label">Accent</span>
+          <input class="colour-picker-input" type="color" id="colourPicker" value="#D42B2B" />
+        </div>
+        <div>
+          <div class="total-label">Total EXP</div>
+          <div class="total-value" id="totalVal">0</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="weekly-summary" id="weeklySummary">
+      <div class="weekly-title">This week's wins</div>
+      <div class="weekly-grid" id="weeklyGrid"></div>
+    </div>
+
+    <div class="stats-grid" id="statsGrid"></div>
+    <div class="custom-grid-section" id="customGridSection" style="display:none">
+      <div class="custom-grid-label">Custom Categories</div>
+      <div class="custom-grid" id="customGrid"></div>
+    </div>
+
+    <div class="info-panel" id="infoPanel">
+      <button class="close-btn" id="closeInfoBtn">✕</button>
+      <div class="info-panel-header">
+        <span class="info-panel-icon" id="infoPanelIcon"></span>
+        <span class="info-panel-name" id="infoPanelName"></span>
+      </div>
+      <p class="info-panel-desc" id="infoPanelDesc"></p>
+      <div class="info-examples-label" id="infoPanelExamplesLabel">Example tasks</div>
+      <ul class="info-examples" id="infoPanelExamples"></ul>
+      <div id="infoPanelStatLog"></div>
+    </div>
+
+    <div class="log-form">
+      <label class="form-label">Log a win</label>
+      <div class="points-selector">
+        <span class="points-label">Points</span>
+        <button class="pts-btn active" data-pts="1">1</button>
+        <button class="pts-btn" data-pts="2">2</button>
+        <button class="pts-btn" data-pts="3">3</button>
+      </div>
+      <div class="form-row">
+        <input class="form-input" id="actionInput" placeholder="What did you do?" />
+        <select class="form-select" id="statSelect"></select>
+        <button class="log-btn" id="logBtn">+ Log</button>
+      </div>
+      <div class="save-indicator" id="saveIndicator"></div>
+    </div>
+
+    <div class="log-header">
+      <span class="log-section-title">Win history</span>
+      <button class="clear-btn" id="clearBtn">Clear log</button>
+    </div>
+    <ul class="log-list" id="logList"></ul>
+  </div>
+</div>
+
+<!-- Settings Panel -->
+<div class="settings-overlay" id="settingsOverlay"></div>
+<div class="settings-panel" id="settingsPanel">
+  <div class="settings-header">
+    <span class="settings-title">Settings</span>
+    <button class="settings-close" id="settingsClose">✕</button>
+  </div>
+
+  <div class="settings-section-title">Display</div>
+  <div class="toggle-row"><span class="toggle-label">Animated stat bars</span><label class="toggle"><input type="checkbox" id="toggleAnimBars"><span class="toggle-track"></span></label></div>
+  <div class="toggle-row"><span class="toggle-label">Animated background</span><label class="toggle"><input type="checkbox" id="toggleAnimBg"><span class="toggle-track"></span></label></div>
+  <div class="option-group" id="bgStyleGroup">
+    <button class="option-btn active" data-bg="particles">Particles</button>
+    <button class="option-btn" data-bg="stars">Stars</button>
+    <button class="option-btn" data-bg="cards">Cards</button>
+    <button class="option-btn" data-bg="matrix">Matrix</button>
+  </div>
+  <div class="toggle-row"><span class="toggle-label">Compact mode</span><label class="toggle"><input type="checkbox" id="toggleCompact"><span class="toggle-track"></span></label></div>
+  <div class="toggle-row"><span class="toggle-label">Daily quote</span><label class="toggle"><input type="checkbox" id="toggleQuote"><span class="toggle-track"></span></label></div>
+  <div class="toggle-row"><span class="toggle-label">Weekly summary</span><label class="toggle"><input type="checkbox" id="toggleWeekly"><span class="toggle-track"></span></label></div>
+
+  <div class="settings-section-title">Rank Title</div>
+  <p style="font-size:11px;color:var(--text-dim);margin-bottom:10px;">Unlock titles by reaching EXP milestones. Select one to display it.</p>
+  <div class="rank-list" id="rankList"></div>
+  <button class="option-btn" id="clearRankBtn" style="margin-top:4px">None</button>
+
+  <div class="settings-section-title">Custom Categories</div>
+  <p style="font-size:11px;color:var(--text-dim);margin-bottom:12px;">Add your own stat categories. Choose big (full card) or small (compact card).</p>
+  <div class="add-cat-form">
+    <div class="add-cat-row">
+      <input class="settings-input" id="newCatEmoji" placeholder="Emoji" style="width:64px;flex-shrink:0;margin-bottom:0" maxlength="4" />
+      <input class="settings-input" id="newCatName" placeholder="Category name" style="flex:1;margin-bottom:0" maxlength="20" />
+    </div>
+    <div class="add-cat-row">
+      <select class="settings-input" id="newCatSize" style="margin-bottom:0">
+        <option value="big">Big card</option>
+        <option value="small">Small card</option>
+      </select>
+      <select class="settings-input" id="newCatTierType" style="margin-bottom:0">
+        <option value="generic">Generic tiers</option>
+        <option value="custom">Custom tiers</option>
+      </select>
+    </div>
+    <div id="customTierInputs" style="display:none;flex-direction:column;gap:4px">
+      <p style="font-size:11px;color:var(--text-dim)">Enter 5 tier names (lowest to highest):</p>
+      <input class="settings-input" placeholder="Tier 1 (e.g. Novice)" id="ct1" style="margin-bottom:0" />
+      <input class="settings-input" placeholder="Tier 2" id="ct2" style="margin-bottom:0" />
+      <input class="settings-input" placeholder="Tier 3" id="ct3" style="margin-bottom:0" />
+      <input class="settings-input" placeholder="Tier 4" id="ct4" style="margin-bottom:0" />
+      <input class="settings-input" placeholder="Tier 5 (e.g. Master)" id="ct5" style="margin-bottom:0" />
+    </div>
+    <button class="settings-save-btn" id="addCatBtn">Add Category</button>
+  </div>
+  <div class="custom-cat-list" id="customCatList"></div>
+</div>
+
+<div class="milestone-banner" id="milestoneBanner"></div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyAa1Vkbhum-Xh9y_Zwz5RMHd3H6J6pLBlY",
+  authDomain: "life-7d79a.firebaseapp.com",
+  projectId: "life-7d79a",
+  storageBucket: "life-7d79a.firebasestorage.app",
+  messagingSenderId: "619049822813",
+  appId: "1:619049822813:web:e95079c4ded4e31bcdfbb4"
+};
+
+const fbApp = initializeApp(firebaseConfig);
+const db = getFirestore(fbApp);
+
+const STATS = [
+  { key:'knowledge', label:'Knowledge', icon:'📚', desc:'The pursuit of understanding. Knowledge grows whenever you take in new information, study a subject, or deepen your grasp of the world around you.', examples:['Read for 20 minutes','Watched a documentary','Studied for an exam or course','Researched something you were curious about','Listened to an educational podcast'] },
+  { key:'guts', label:'Guts', icon:'🔥', desc:'The courage to act despite resistance. Guts is earned when you do something difficult, uncomfortable, or dreaded — even when every part of you wants to avoid it.', examples:["Showered when you really didn't want to",'Did laundry or cleaned your room','Made a phone call you were avoiding','Got out of bed despite low energy',"Tackled a task you'd been putting off"] },
+  { key:'proficiency', label:'Proficiency', icon:'🔧', desc:'The mastery of practical skills. Proficiency covers anything hands-on: crafting, building, maintaining, or improving your ability to do something in the physical world.', examples:['Cooked a meal from scratch','Completed a workout or physical training','Fixed or repaired something','Practiced an instrument or craft','Organised your space or files'] },
+  { key:'kindness', label:'Kindness', icon:'🌱', desc:'Care directed outward — toward others, living things, or the world. Kindness grows when you take action to support, nurture, or simply be present for someone.', examples:['Checked in on a friend or family member','Did something nice for someone unprompted','Took care of a plant or pet','Donated, volunteered, or helped someone out','Wrote a kind message to someone'] },
+  { key:'communication', label:'Communication', icon:'🎭', desc:'The ability to connect, express, and be understood. Communication grows through social interaction, self-expression, and any moment where you bridge the gap between yourself and another person.', examples:['Had a meaningful conversation','Expressed how you were feeling to someone','Joined a social event or gathering',"Sent a message to someone you'd lost touch with",'Gave or asked for feedback'] },
+  { key:'creativity', label:'Creativity', icon:'🎨', desc:"The act of making something. Creativity is about output — producing rather than consuming. Any time you bring something into existence that wasn't there before, you earn this stat.", examples:['Drew, painted, or made visual art','Wrote — journalling, fiction, poetry, anything','Made music or played around with sounds','Brainstormed or came up with ideas','Built or designed something'] },
+  { key:'discipline', label:'Discipline', icon:'⚙️', desc:'The power of consistency. Where Guts is about doing hard things once, Discipline is about showing up repeatedly — honouring routines, resisting impulse, and building habits over time.', examples:['Stuck to a morning or night routine','Went to bed at a reasonable time','Avoided doom-scrolling or a bad habit','Completed a daily streak or habit','Did something on schedule even when unmotivated'] },
+  { key:'mindfulness', label:'Mindfulness', icon:'🧘', desc:'Emotional and mental clarity. Mindfulness is earned when you deliberately turn inward — observing your thoughts, regulating your emotions, or tending to your inner world with intention.', examples:['Meditated or did breathing exercises','Journalled about your feelings','Recognised and named an emotion without acting on it','Attended therapy or a support session','Paused and reflected instead of reacting'] },
+  { key:'vitality', label:'Vitality', icon:'💪', desc:"The foundation of physical wellbeing. Vitality tracks how well you're maintaining your body — sleep, nutrition, hydration, movement.", examples:['Drank enough water today','Ate a proper, nourishing meal','Got 7+ hours of sleep','Went for a walk or did light movement','Took care of a health appointment or habit'] }
+];
+
+const STAT_TIERS = {
+  knowledge:['Oblivious','Learned','Scholarly','Encyclopedic','Erudite'],
+  guts:['Timid','Bold','Staunch','Dauntless','Lionhearted'],
+  proficiency:['Bumbling','Decent','Skilled','Masterful','Transcendent'],
+  kindness:['Indifferent','Considerate','Empathetic','Selfless','Angelic'],
+  communication:['Withdrawn','Sociable','Eloquent','Compelling','Magnetic'],
+  creativity:['Blank','Inspired','Inventive','Visionary','Legendary'],
+  discipline:['Erratic','Steady','Resolute','Ironclad','Unbreakable'],
+  mindfulness:['Oblivious','Aware','Centred','Enlightened','Transcendent'],
+  vitality:['Sluggish','Sturdy','Vigorous','Indomitable','Unstoppable'],
+};
+
+const GENERIC_TIERS = ['Novice','Apprentice','Adept','Expert','Master'];
+const TIER_THRESHOLDS = [0,5,15,30,50];
+
+function getTierLabel(val, tiers) {
+  let idx=0;
+  for(let i=TIER_THRESHOLDS.length-1;i>=0;i--){if(val>=TIER_THRESHOLDS[i]){idx=i;break;}}
+  return tiers[idx];
+}
+
+function getBarPct(val) {
+  let idx=0;
+  for(let i=TIER_THRESHOLDS.length-1;i>=0;i--){if(val>=TIER_THRESHOLDS[i]){idx=i;break;}}
+  const low=TIER_THRESHOLDS[idx],high=TIER_THRESHOLDS[idx+1]||low+25;
+  return Math.min(100,Math.round(((val-low)/(high-low))*100));
+}
+
+// Updated ranks: Queen+King both at 100, Empress+Emperor both at 150
+const RANKS = [
+  {label:'Joker',req:50},
+  {label:'Queen',req:100},{label:'King',req:100},
+  {label:'Empress',req:150},{label:'Emperor',req:150},
+  {label:'Trickster',req:200},{label:'Mirage',req:250},{label:'Shadow',req:300},
+  {label:'Ascendant',req:350},{label:'Ace',req:400},{label:'Royal',req:450},
+  {label:'Phantom Thief',req:500},
+];
+
+const QUOTES = ["Your mind shapes your reality.","Learn how to tune out the noise."];
+
+const APP_VERSION = 3;
+
+let currentUsername=null, stats={}, log=[], openInfoKey=null, selectedPts=1, saveTimeout=null;
+let hygieneCount=0;
+let customCategories=[]; // [{key, label, icon, size:'big'|'small', tiers:[5 strings]}]
+let settings={animBars:false,animBg:false,bgStyle:'particles',compact:false,quote:false,weekly:false,selectedRank:''};
+
+function blankStats(){const s={};STATS.forEach(st=>s[st.key]=0);return s;}
+function userDoc(u){return doc(db,'users',u);}
+
+function allStats() { return [...STATS, ...customCategories]; }
+
+function getTiersFor(key) {
+  if(STAT_TIERS[key]) return STAT_TIERS[key];
+  const c=customCategories.find(x=>x.key===key);
+  return c ? c.tiers : GENERIC_TIERS;
+}
+
+async function loadUser(username) {
+  const snap=await getDoc(userDoc(username));
+  if(snap.exists()){
+    const d=snap.data();
+    return{stats:d.stats||blankStats(),log:d.log||[],accent:d.accent||null,settings:d.settings||null,hygieneCount:d.hygieneCount||0,customCategories:d.customCategories||[],appVersion:d.appVersion||1};
+  }
+  return{stats:blankStats(),log:[],accent:null,settings:null,hygieneCount:0,customCategories:[],appVersion:APP_VERSION};
+}
+
+// Returns any stat keys in `stats` that are not in STATS or customCategories
+function findOrphanedKeys(statsObj, cats) {
+  const knownKeys = new Set([...STATS.map(s=>s.key), ...cats.map(c=>c.key)]);
+  return Object.keys(statsObj).filter(k => !knownKeys.has(k) && (statsObj[k]||0) > 0);
+}
+
+// Show a modal-style prompt asking where to redistribute orphaned points
+function showOrphanPrompt(orphanedKeys, statsObj, onResolved) {
+  const total = orphanedKeys.reduce((sum,k) => sum + (statsObj[k]||0), 0);
+  const names = orphanedKeys.map(k => `"${k.replace('custom_','').replace(/_/g,' ')}" (${statsObj[k]} pts)`).join(', ');
+
+  const overlay = document.createElement('div');
+  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.75);z-index:300;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(3px)';
+
+  const box = document.createElement('div');
+  box.style.cssText = 'background:var(--surface);border:0.5px solid var(--border-red);border-radius:6px;padding:28px 24px;max-width:420px;width:90%;font-family:"DM Sans",sans-serif';
+
+  const statOptions = STATS.map(s=>`<option value="${s.key}">${s.icon} ${s.label}</option>`).join('');
+
+  box.innerHTML = `
+    <div style="font-family:'Bebas Neue',sans-serif;font-size:26px;color:var(--red);letter-spacing:0.05em;margin-bottom:8px">Orphaned Points Found</div>
+    <p style="font-size:13px;color:var(--text-mid);line-height:1.6;margin-bottom:6px">
+      It looks like this save was opened in an older version of the app, which removed ${total} point${total!==1?'s':''} from deleted custom categories (${names}).
+    </p>
+    <p style="font-size:13px;color:var(--text-mid);line-height:1.6;margin-bottom:18px">
+      Where would you like to redistribute these <strong style="color:var(--text)">${total} point${total!==1?'s':''}</strong>?
+    </p>
+    <label style="font-size:10px;letter-spacing:0.18em;text-transform:uppercase;color:var(--text-dim);font-weight:500;display:block;margin-bottom:8px">Move points to</label>
+    <select id="orphanTarget" style="width:100%;background:var(--surface3);border:0.5px solid var(--border);border-radius:3px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:13px;padding:10px 12px;outline:none;margin-bottom:16px">
+      ${statOptions}
+    </select>
+    <div style="display:flex;gap:10px">
+      <button id="orphanConfirm" style="flex:1;background:var(--red);border:none;border-radius:3px;color:var(--text);font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:0.1em;padding:10px;cursor:pointer">Redistribute</button>
+      <button id="orphanDiscard" style="flex:1;background:none;border:0.5px solid var(--border);border-radius:3px;color:var(--text-dim);font-family:'DM Sans',sans-serif;font-size:13px;padding:10px;cursor:pointer">Discard points</button>
+    </div>`;
+
+  overlay.appendChild(box);
+  document.body.appendChild(overlay);
+
+  document.getElementById('orphanConfirm').addEventListener('click', () => {
+    const targetKey = document.getElementById('orphanTarget').value;
+    orphanedKeys.forEach(k => {
+      stats[targetKey] = (stats[targetKey]||0) + (statsObj[k]||0);
+      delete stats[k];
+    });
+    overlay.remove();
+    onResolved();
+  });
+
+  document.getElementById('orphanDiscard').addEventListener('click', () => {
+    orphanedKeys.forEach(k => delete stats[k]);
+    overlay.remove();
+    onResolved();
+  });
+}
+
+async function saveUser() {
+  if(!currentUsername)return;
+  setSaveIndicator('saving');
+  try {
+    const accent=localStorage.getItem('lifeStats_accent')||null;
+    await setDoc(userDoc(currentUsername),{stats,log,accent,settings,hygieneCount,customCategories,appVersion:APP_VERSION});
+    setSaveIndicator('saved');
+  } catch(e){setSaveIndicator('error');}
+}
+
+function scheduleSave(){clearTimeout(saveTimeout);saveTimeout=setTimeout(saveUser,800);}
+
+function setSaveIndicator(state){
+  const el=document.getElementById('saveIndicator');el.className='save-indicator';
+  if(state==='saving'){el.textContent='Saving...';el.classList.add('saving');}
+  else if(state==='saved'){el.textContent='Saved ✓';el.classList.add('saved');setTimeout(()=>{el.textContent='';el.className='save-indicator';},2000);}
+  else{el.textContent='Save failed — check your connection.';}
+}
+
+function showLoading(v){document.getElementById('loadingOverlay').classList.toggle('show',v);}
+
+async function handleLogin() {
+  const raw=document.getElementById('usernameInput').value.trim();
+  const errEl=document.getElementById('loginError');errEl.textContent='';
+  if(!raw){errEl.textContent='Please enter a username.';return;}
+  if(!/^[a-zA-Z0-9_-]{2,32}$/.test(raw)){errEl.textContent='Letters, numbers, _ and - only. 2–32 characters.';return;}
+  showLoading(true);
+  try {
+    const username=raw.toLowerCase();
+    const data=await loadUser(username);
+    currentUsername=username;
+    stats=data.stats;
+    log=data.log;
+    customCategories=data.customCategories||[];
+    hygieneCount=data.hygieneCount||0;
+    if(data.settings)settings={...settings,...data.settings};
+
+    // One-time hygiene migration
+    if(!data.hygieneCount){
+      hygieneCount=log.filter(e=>e.key==='discipline'&&e.desc.toLowerCase().includes('hygiene')).reduce((s,e)=>s+(e.pts||1),0);
+      if(hygieneCount>0)scheduleSave();
+    }
+
+    // Ensure custom category stats exist
+    customCategories.forEach(c=>{if(stats[c.key]===undefined)stats[c.key]=0;});
+
+    // Fix 2+3: detect orphaned keys (e.g. from v2 wiping customCategories)
+    const orphans = findOrphanedKeys(stats, customCategories);
+
+    const finishLogin = () => {
+      document.getElementById('displayUsername').textContent=currentUsername;
+      localStorage.setItem('lifeStats_lastUser',currentUsername);
+
+      if(data.accent){document.getElementById('colourPicker').value=data.accent;applyAccent(data.accent);}
+      else{const local=localStorage.getItem('lifeStats_accent');if(local){document.getElementById('colourPicker').value=local;applyAccent(local);}}
+
+      showLoading(false);
+      document.getElementById('loginScreen').style.display='none';
+      document.getElementById('mainApp').classList.add('show');
+      applyAllSettings();
+      buildGrid();
+      buildCustomGrid();
+      renderLog();
+      updateRankTitle();
+      const savedTheme=localStorage.getItem('lifeStats_theme');
+      if(savedTheme)applyTheme(savedTheme);
+      if(orphans.length > 0) scheduleSave(); // persist the resolved state
+    };
+
+    if(orphans.length > 0) {
+      showLoading(false);
+      showOrphanPrompt(orphans, stats, finishLogin);
+    } else {
+      finishLogin();
+    }
+  } catch(e){showLoading(false);document.getElementById('loginError').textContent='Could not connect. Check your internet and try again.';}
+}
+
+function handleLogout(){
+  currentUsername=null;stats={};log=[];customCategories=[];
+  document.getElementById('mainApp').classList.remove('show');
+  document.getElementById('loginScreen').style.display='flex';
+  document.getElementById('usernameInput').value='';
+  document.getElementById('loginError').textContent='';
+}
+
+// ── Main grid ──
+function buildGrid(){
+  const grid=document.getElementById('statsGrid'),sel=document.getElementById('statSelect');
+  grid.innerHTML='';sel.innerHTML='';
+  STATS.forEach(s=>{
+    const val=stats[s.key]||0,tierLabel=getTierLabel(val,STAT_TIERS[s.key]),pct=getBarPct(val);
+    const card=document.createElement('div');card.className='stat-card';card.id='card-'+s.key;
+    const hygieneHtml=s.key==='discipline'?`<span class="hygiene-count" id="hygieneCount">🚿 ${hygieneCount}</span>`:'';
+    card.innerHTML=`
+      <div class="stat-top"><span class="stat-name">${s.label}</span><span class="stat-icon">${s.icon}</span></div>
+      <div class="stat-value" id="val-${s.key}">${val}</div>
+      <div class="bar-track"><div class="bar-fill" id="bar-${s.key}" style="width:${pct}%"></div></div>
+      <div class="stat-bottom">
+        <div class="stat-rank-wrap"><span class="stat-rank" id="rank-${s.key}">${tierLabel}</span>${hygieneHtml}</div>
+        <button class="info-btn" data-key="${s.key}">info ▾</button>
+      </div>`;
+    grid.appendChild(card);
+    const opt=document.createElement('option');opt.value=s.key;opt.textContent=s.icon+' '+s.label;sel.appendChild(opt);
+  });
+  // Add custom big cats to main grid
+  customCategories.filter(c=>c.size==='big').forEach(addCustomToGrid);
+  // Add custom to select
+  customCategories.forEach(c=>{
+    const opt=document.createElement('option');opt.value=c.key;opt.textContent=c.icon+' '+c.label;sel.appendChild(opt);
+  });
+  updateTotal();
+}
+
+function addCustomToGrid(c){
+  const grid=document.getElementById('statsGrid');
+  const val=stats[c.key]||0,tierLabel=getTierLabel(val,c.tiers),pct=getBarPct(val);
+  const card=document.createElement('div');card.className='stat-card';card.id='card-'+c.key;
+  card.innerHTML=`
+    <div class="stat-top"><span class="stat-name">${c.label}</span><span class="stat-icon">${c.icon}</span></div>
+    <div class="stat-value" id="val-${c.key}">${val}</div>
+    <div class="bar-track"><div class="bar-fill" id="bar-${c.key}" style="width:${pct}%"></div></div>
+    <div class="stat-bottom">
+      <div class="stat-rank-wrap"><span class="stat-rank" id="rank-${c.key}">${tierLabel}</span></div>
+      <button class="info-btn" data-key="${c.key}">info ▾</button>
+    </div>`;
+  grid.appendChild(card);
+}
+
+function buildCustomGrid(){
+  const section=document.getElementById('customGridSection');
+  const grid=document.getElementById('customGrid');
+  grid.innerHTML='';
+  const smallCats=customCategories.filter(c=>c.size==='small');
+  section.style.display=smallCats.length>0?'block':'none';
+  smallCats.forEach(c=>{
+    const val=stats[c.key]||0,tierLabel=getTierLabel(val,c.tiers),pct=getBarPct(val);
+    const card=document.createElement('div');card.className='custom-card';card.id='ccard-'+c.key;
+    card.innerHTML=`
+      <div class="custom-card-top"><span class="custom-card-name">${c.label}</span><span class="custom-card-icon">${c.icon}</span></div>
+      <div class="custom-card-value" id="val-${c.key}">${val}</div>
+      <div class="custom-bar-track"><div class="custom-bar-fill" id="bar-${c.key}" style="width:${pct}%"></div></div>
+      <div class="custom-card-bottom">
+        <span class="custom-card-rank" id="rank-${c.key}">${tierLabel}</span>
+        <button class="custom-card-info-btn info-btn" data-key="${c.key}">info ▾</button>
+      </div>`;
+    grid.appendChild(card);
+  });
+  renderCustomCatList();
+}
+
+function updateCard(key,prevVal){
+  const val=stats[key];
+  const tiers=getTiersFor(key);
+  const tierLabel=getTierLabel(val,tiers),pct=getBarPct(val),prevTierLabel=getTierLabel(prevVal,tiers);
+  const valEl=document.getElementById('val-'+key);
+  const barEl=document.getElementById('bar-'+key);
+  const rankEl=document.getElementById('rank-'+key);
+  if(valEl)valEl.textContent=val;
+  if(barEl)barEl.style.width=pct+'%';
+  if(rankEl)rankEl.textContent=tierLabel;
+  const card=document.getElementById('card-'+key)||document.getElementById('ccard-'+key);
+  if(card){card.classList.remove('flash');void card.offsetWidth;card.classList.add('flash');}
+  if(tierLabel!==prevTierLabel)showMilestone(key,tierLabel);
+  updateTotal();updateRankTitle();
+}
+
+function updateTotal(){
+  const total=Object.values(stats).reduce((a,b)=>a+b,0);
+  document.getElementById('totalVal').textContent=total;
+  buildRankList(total);updateWeekly();
+}
+
+function updateRankTitle(){
+  const total=Object.values(stats).reduce((a,b)=>a+b,0);
+  const el=document.getElementById('rankTitle');
+  if(settings.selectedRank){const r=RANKS.find(x=>x.label===settings.selectedRank);if(r&&total>=r.req){el.textContent=settings.selectedRank;el.classList.add('visible');return;}}
+  el.classList.remove('visible');
+}
+
+function buildRankList(total){
+  const list=document.getElementById('rankList');if(!list)return;list.innerHTML='';
+  RANKS.forEach(r=>{
+    const unlocked=total>=r.req,active=settings.selectedRank===r.label;
+    const div=document.createElement('div');div.className='rank-option'+(active?' active':'')+(unlocked?'':' locked');
+    div.innerHTML=`<span class="rank-option-name">${r.label}</span><span class="rank-option-req">${r.req} EXP${unlocked?' ✓':''}</span>`;
+    if(unlocked){div.addEventListener('click',()=>{settings.selectedRank=r.label;buildRankList(total);updateRankTitle();scheduleSave();});}
+    list.appendChild(div);
+  });
+}
+
+// ── Info panel ──
+function toggleInfo(key){
+  if(openInfoKey===key){closeInfo();return;}
+  openInfoKey=key;
+  const s=allStats().find(x=>x.key===key);
+  document.getElementById('infoPanelIcon').textContent=s.icon;
+  document.getElementById('infoPanelName').textContent=s.label;
+  document.getElementById('infoPanelDesc').textContent=s.desc||'';
+
+  const exLabel=document.getElementById('infoPanelExamplesLabel');
+  const ul=document.getElementById('infoPanelExamples');
+  ul.innerHTML='';
+  if(s.examples&&s.examples.length){
+    exLabel.style.display='';
+    s.examples.forEach(ex=>{const li=document.createElement('li');li.textContent=ex;ul.appendChild(li);});
+  } else { exLabel.style.display='none'; }
+
+  const statLog=log.filter(e=>e.key===key);
+  const fmt=ts=>{const d=new Date(ts);return String(d.getDate()).padStart(2,'0')+'/'+String(d.getMonth()+1).padStart(2,'0')+'/'+d.getFullYear();};
+
+  // Build all stat keys for move dropdown
+  const allKeys=allStats().filter(x=>x.key!==key);
+  const moveOptions=allKeys.map(x=>`<option value="${x.key}">${x.icon} ${x.label}</option>`).join('');
+
+  document.getElementById('infoPanelStatLog').innerHTML=statLog.length===0
+    ?`<div style="font-size:10px;letter-spacing:0.18em;text-transform:uppercase;color:var(--text-dim);font-weight:500;margin-top:14px;margin-bottom:6px">Win History</div><p style="font-size:12px;color:var(--text-dim)">No wins logged yet.</p>`
+    :`<div style="font-size:10px;letter-spacing:0.18em;text-transform:uppercase;color:var(--text-dim);font-weight:500;margin-top:14px;margin-bottom:6px">Win History (${statLog.length})</div>
+      <ul style="list-style:none;display:flex;flex-direction:column;gap:4px" id="statLogList">
+        ${statLog.map((e,i)=>{
+          const realIdx=log.indexOf(e);
+          return `<li style="display:flex;gap:8px;align-items:center;font-size:12px;color:var(--text-mid);padding:5px 0;border-bottom:0.5px solid var(--border)">
+            <span style="flex:1">${e.desc}</span>
+            <span style="color:var(--red);font-family:'Bebas Neue',sans-serif;font-size:14px">+${e.pts||1}</span>
+            <span style="font-size:10px;color:var(--text-dim)">${fmt(e.ts)}</span>
+            <select class="win-move-select" data-logidx="${realIdx}" title="Move to...">
+              <option value="">Move to...</option>${moveOptions}
+            </select>
+          </li>`;
+        }).join('')}
+      </ul>`;
+
+  const panel=document.getElementById('infoPanel');panel.classList.add('open');
+  const cardEl=document.getElementById('card-'+key)||document.getElementById('ccard-'+key);
+  if(cardEl)cardEl.parentNode.insertAdjacentElement('afterend',panel);
+
+  // Move win listener
+  document.getElementById('infoPanelStatLog').addEventListener('change',e=>{
+    const sel=e.target.closest('.win-move-select');if(!sel)return;
+    const toKey=sel.value;if(!toKey)return;
+    const realIdx=parseInt(sel.dataset.logidx);
+    const entry=log[realIdx];if(!entry)return;
+    const pts=entry.pts||1;
+    // Deduct from current stat
+    stats[entry.key]=Math.max(0,(stats[entry.key]||0)-pts);
+    if(entry.key==='discipline'&&entry.desc.toLowerCase().includes('hygiene')){
+      hygieneCount=Math.max(0,hygieneCount-pts);
+      const hEl=document.getElementById('hygieneCount');if(hEl)hEl.textContent='🚿 '+hygieneCount;
+    }
+    updateCard(entry.key,stats[entry.key]+pts);
+    // Add to new stat
+    const dest=allStats().find(x=>x.key===toKey);
+    const prevDest=stats[toKey]||0;
+    stats[toKey]=prevDest+pts;
+    entry.key=toKey;entry.icon=dest.icon;entry.label=dest.label;
+    if(toKey==='discipline'&&entry.desc.toLowerCase().includes('hygiene')){
+      hygieneCount+=pts;
+      const hEl=document.getElementById('hygieneCount');if(hEl)hEl.textContent='🚿 '+hygieneCount;
+    }
+    updateCard(toKey,prevDest);
+    renderLog();scheduleSave();
+    // Refresh info panel
+    toggleInfo(key);
+  });
+}
+
+function closeInfo(){openInfoKey=null;document.getElementById('infoPanel').classList.remove('open');}
+
+// ── Log action ──
+function logAction(){
+  const desc=document.getElementById('actionInput').value.trim();
+  const key=document.getElementById('statSelect').value;
+  if(!desc){document.getElementById('actionInput').focus();return;}
+  const prevVal=stats[key]||0;
+  stats[key]=prevVal+selectedPts;
+  const s=allStats().find(x=>x.key===key);
+  log.unshift({key,icon:s.icon,label:s.label,desc,pts:selectedPts,ts:Date.now()});
+  if(log.length>100)log=log.slice(0,100);
+  if(key==='discipline'&&desc.toLowerCase().includes('hygiene')){
+    hygieneCount+=selectedPts;
+    const hEl=document.getElementById('hygieneCount');if(hEl)hEl.textContent='🚿 '+hygieneCount;
+  }
+  updateCard(key,prevVal);renderLog();spawnFloater();scheduleSave();
+  document.getElementById('actionInput').value='';
+}
+
+function spawnFloater(){
+  const btn=document.getElementById('logBtn'),rect=btn.getBoundingClientRect();
+  const el=document.createElement('div');el.className='plus-float';el.textContent='+'+selectedPts;
+  el.style.left=(rect.left+rect.width/2-16)+'px';el.style.top=(rect.top-10)+'px';
+  document.body.appendChild(el);setTimeout(()=>el.remove(),950);
+}
+
+function renderLog(){
+  const list=document.getElementById('logList');
+  if(log.length===0){list.innerHTML='<li class="empty-log">No wins logged yet — get out there.</li>';return;}
+  list.innerHTML='';
+  log.slice(0,40).forEach((entry,idx)=>{
+    const li=document.createElement('li');li.className='log-item';
+    const d=new Date(entry.ts),date=String(d.getDate()).padStart(2,'0')+'/'+String(d.getMonth()+1).padStart(2,'0')+'/'+d.getFullYear();
+    li.innerHTML=`<span class="log-icon">${entry.icon}</span><span class="log-desc">${entry.desc}</span><span class="log-tag">${entry.label}</span><span class="log-gain">+${entry.pts||1}</span><span class="log-date">${date}</span><button class="log-delete-btn" data-idx="${idx}" title="Remove">✕</button>`;
+    list.appendChild(li);
+  });
+}
+
+let milestoneTimeout;
+function showMilestone(key,tierLabel){
+  const s=allStats().find(x=>x.key===key);
+  const banner=document.getElementById('milestoneBanner');
+  banner.textContent=`${s?s.icon:''} ${s?s.label:key} levelled up — ${tierLabel}`;
+  banner.classList.add('show');clearTimeout(milestoneTimeout);
+  milestoneTimeout=setTimeout(()=>banner.classList.remove('show'),3000);
+}
+
+function updateWeekly(){
+  const grid=document.getElementById('weeklyGrid');if(!grid)return;
+  const weekAgo=Date.now()-7*86400000,weekLog=log.filter(e=>e.ts>=weekAgo);
+  const all=allStats();const totals={};all.forEach(s=>totals[s.key]=0);
+  weekLog.forEach(e=>{if(totals[e.key]!==undefined)totals[e.key]+=(e.pts||1);});
+  grid.innerHTML=all.map(s=>`<div class="weekly-item"><span class="weekly-item-label">${s.icon} ${s.label}</span><span class="weekly-item-val">${totals[s.key]}</span></div>`).join('');
+}
+
+// ── Custom categories ──
+function renderCustomCatList(){
+  const list=document.getElementById('customCatList');list.innerHTML='';
+  customCategories.forEach((c,i)=>{
+    const div=document.createElement('div');div.className='custom-cat-item';
+    div.innerHTML=`<span>${c.icon} ${c.label} <span style="color:var(--text-dim);font-size:10px">${c.size} · ${c.tiers[0]}→${c.tiers[4]}</span></span><button class="custom-cat-delete" data-i="${i}">✕</button>`;
+    list.appendChild(div);
+  });
+}
+
+document.getElementById('newCatTierType').addEventListener('change',e=>{
+  document.getElementById('customTierInputs').style.display=e.target.value==='custom'?'flex':'none';
+});
+
+document.getElementById('addCatBtn').addEventListener('click',()=>{
+  const emoji=document.getElementById('newCatEmoji').value.trim()||'⭐';
+  const name=document.getElementById('newCatName').value.trim();
+  if(!name)return;
+  const size=document.getElementById('newCatSize').value;
+  const tierType=document.getElementById('newCatTierType').value;
+  let tiers=GENERIC_TIERS;
+  if(tierType==='custom'){
+    const t=[1,2,3,4,5].map(n=>document.getElementById('ct'+n).value.trim());
+    if(t.some(x=>!x)){alert('Please fill in all 5 tier names.');return;}
+    tiers=t;
+  }
+  const key='custom_'+Date.now();
+  customCategories.push({key,label:name,icon:emoji,size,tiers,desc:'',examples:[]});
+  stats[key]=0;
+  buildGrid();buildCustomGrid();scheduleSave();
+  document.getElementById('newCatEmoji').value='';
+  document.getElementById('newCatName').value='';
+  [1,2,3,4,5].forEach(n=>{const el=document.getElementById('ct'+n);if(el)el.value='';});
+});
+
+document.getElementById('customCatList').addEventListener('click',e=>{
+  const btn=e.target.closest('.custom-cat-delete');if(!btn)return;
+  const i=parseInt(btn.dataset.i);
+  const cat=customCategories[i];
+  const pts=stats[cat.key]||0;
+
+  if(pts > 0) {
+    // Build modal asking where to redistribute
+    const overlay=document.createElement('div');
+    overlay.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,0.75);z-index:300;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(3px)';
+    const box=document.createElement('div');
+    box.style.cssText='background:var(--surface);border:0.5px solid var(--border-red);border-radius:6px;padding:28px 24px;max-width:400px;width:90%;font-family:"DM Sans",sans-serif';
+    const otherStats=[...STATS, ...customCategories.filter((_,idx)=>idx!==i)];
+    const opts=otherStats.map(s=>`<option value="${s.key}">${s.icon} ${s.label}</option>`).join('');
+    box.innerHTML=`
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:26px;color:var(--red);letter-spacing:0.05em;margin-bottom:8px">Delete ${cat.icon} ${cat.label}?</div>
+      <p style="font-size:13px;color:var(--text-mid);line-height:1.6;margin-bottom:18px">
+        This category has <strong style="color:var(--text)">${pts} point${pts!==1?'s':''}</strong>. Where would you like to move them before deleting?
+      </p>
+      <label style="font-size:10px;letter-spacing:0.18em;text-transform:uppercase;color:var(--text-dim);font-weight:500;display:block;margin-bottom:8px">Redistribute to</label>
+      <select id="deleteRedistTarget" style="width:100%;background:var(--surface3);border:0.5px solid var(--border);border-radius:3px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:13px;padding:10px 12px;outline:none;margin-bottom:16px">${opts}</select>
+      <div style="display:flex;gap:10px">
+        <button id="deleteRedistConfirm" style="flex:1;background:var(--red);border:none;border-radius:3px;color:var(--text);font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:0.1em;padding:10px;cursor:pointer">Move &amp; Delete</button>
+        <button id="deleteDiscardConfirm" style="flex:1;background:none;border:0.5px solid var(--border);border-radius:3px;color:var(--text-dim);font-family:'DM Sans',sans-serif;font-size:13px;padding:10px;cursor:pointer">Discard points</button>
+        <button id="deleteCancelBtn" style="background:none;border:0.5px solid var(--border);border-radius:3px;color:var(--text-dim);font-family:'DM Sans',sans-serif;font-size:13px;padding:10px 14px;cursor:pointer">Cancel</button>
+      </div>`;
+    overlay.appendChild(box);
+    document.body.appendChild(overlay);
+
+    document.getElementById('deleteRedistConfirm').addEventListener('click',()=>{
+      const toKey=document.getElementById('deleteRedistTarget').value;
+      const prevVal=stats[toKey]||0;
+      stats[toKey]=prevVal+pts;
+      delete stats[cat.key];
+      customCategories.splice(i,1);
+      overlay.remove();
+      buildGrid();buildCustomGrid();updateCard(toKey,prevVal);scheduleSave();
+    });
+    document.getElementById('deleteDiscardConfirm').addEventListener('click',()=>{
+      delete stats[cat.key];
+      customCategories.splice(i,1);
+      overlay.remove();
+      buildGrid();buildCustomGrid();updateTotal();scheduleSave();
+    });
+    document.getElementById('deleteCancelBtn').addEventListener('click',()=>overlay.remove());
+  } else {
+    if(!confirm(`Delete "${cat.label}"? Its log entries will remain but be unlinked.`))return;
+    delete stats[cat.key];
+    customCategories.splice(i,1);
+    buildGrid();buildCustomGrid();scheduleSave();
+  }
+});
+
+// ── Settings ──
+function applyAllSettings(){
+  document.getElementById('statsGrid').classList.toggle('animated-bars',settings.animBars);
+  if(settings.animBg)applyAnimBg(true,settings.bgStyle);
+  document.getElementById('statsGrid').classList.toggle('compact',settings.compact);
+  if(settings.quote){const el=document.getElementById('dailyQuote');el.classList.add('on');el.textContent='"'+QUOTES[Math.floor(Math.random()*QUOTES.length)]+'"';}
+  if(settings.weekly){document.getElementById('weeklySummary').classList.add('on');updateWeekly();}
+  document.getElementById('toggleAnimBars').checked=settings.animBars;
+  document.getElementById('toggleAnimBg').checked=settings.animBg;
+  document.getElementById('toggleCompact').checked=settings.compact;
+  document.getElementById('toggleQuote').checked=settings.quote;
+  document.getElementById('toggleWeekly').checked=settings.weekly;
+  document.querySelectorAll('#bgStyleGroup .option-btn').forEach(b=>b.classList.toggle('active',b.dataset.bg===(settings.bgStyle||'particles')));
+}
+
+function applyAnimBg(on,type){
+  const bgType=type||settings.bgStyle||'particles';
+  settings.bgStyle=bgType;
+  document.querySelectorAll('#bgStyleGroup .option-btn').forEach(b=>b.classList.toggle('active',b.dataset.bg===bgType));
+  const p=document.getElementById('particles');
+  if(type&&p.children.length>0)p.innerHTML='';
+  p.classList.toggle('on',on);
+  if(on&&p.children.length===0){
+    const CARD_SYMBOLS=['♠','♥','♦','♣','🃟','A','K','Q','J'];
+    const STAR_SYMBOLS=['★','✦','✧','✩','✪'];
+    const MATRIX_CHARS='アイウエオカキクケコサシスセソタチツテトナニヌネノ0123456789';
+    const count=bgType==='matrix'?60:40;
+    for(let i=0;i<count;i++){
+      const dot=document.createElement('div');
+      dot.style.left=Math.random()*100+'vw';
+      dot.style.top=Math.random()*100+'vh';
+      dot.style.animationDelay='-'+(Math.random()*12)+'s';
+      if(bgType==='stars'){dot.className='particle star';dot.textContent=STAR_SYMBOLS[Math.floor(Math.random()*STAR_SYMBOLS.length)];dot.style.animationDuration=(6+Math.random()*10)+'s';dot.style.fontSize=(10+Math.random()*14)+'px';}
+      else if(bgType==='cards'){dot.className='particle card';dot.textContent=CARD_SYMBOLS[Math.floor(Math.random()*CARD_SYMBOLS.length)];dot.style.animationDuration=(7+Math.random()*8)+'s';dot.style.fontSize=(14+Math.random()*16)+'px';}
+      else if(bgType==='matrix'){dot.className='particle matrix';dot.textContent=MATRIX_CHARS[Math.floor(Math.random()*MATRIX_CHARS.length)];dot.style.animationDuration=(3+Math.random()*6)+'s';dot.style.top='-20px';}
+      else{dot.className='particle dots';dot.style.width=(1+Math.random()*3)+'px';dot.style.height=dot.style.width;dot.style.animationDuration=(6+Math.random()*10)+'s';}
+      p.appendChild(dot);
+    }
+  }
+  settings.animBg=on;
+}
+
+// ── Colour ──
+function hexToRgb(hex){return{r:parseInt(hex.slice(1,3),16),g:parseInt(hex.slice(3,5),16),b:parseInt(hex.slice(5,7),16)};}
+function applyAccent(hex){
+  const{r,g,b}=hexToRgb(hex),root=document.documentElement;
+  root.style.setProperty('--red',hex);
+  root.style.setProperty('--red-dim',`rgb(${Math.round(r*.74)},${Math.round(g*.74)},${Math.round(b*.74)})`);
+  root.style.setProperty('--red-glow',`rgba(${r},${g},${b},0.18)`);
+  root.style.setProperty('--border-red',`rgba(${r},${g},${b},0.35)`);
+  localStorage.setItem('lifeStats_accent',hex);
+}
+
+// ── Themes ──
+const THEMES = {
+  default:    { black:'#0A0A0A', surface:'#141414', surface2:'#1C1C1C', surface3:'#242424', border:'rgba(255,255,255,0.07)', text:'#F0EDE8', textDim:'rgba(240,237,232,0.45)', textMid:'rgba(240,237,232,0.7)', accent:'#D42B2B' },
+  purple:     { black:'#2E063D', surface:'#160F22', surface2:'#1E1530', surface3:'#27193D', border:'rgba(200,180,255,0.08)', text:'#EDE8F5', textDim:'rgba(237,232,245,0.45)', textMid:'rgba(237,232,245,0.7)', accent:'#982ABC' },
+  velvet:     { black:'#100A2A', surface:'#0A1020', surface2:'#0F1830', surface3:'#162040', border:'rgba(180,200,255,0.08)', text:'#E8EEF8', textDim:'rgba(232,238,248,0.45)', textMid:'rgba(232,238,248,0.7)', accent:'#3B6FD3' },
+  royal:      { black:'#0E0204', surface:'#1F0509', surface2:'#2A070C', surface3:'#360A10', border:'rgba(255,80,80,0.10)', text:'#FFE9E6', textDim:'rgba(255,233,230,0.45)', textMid:'rgba(255,233,230,0.7)', accent:'#E63946' },
+  coffee:     { black:'#C49A6C', surface:'#B08050', surface2:'#8A6040', surface3:'#704830', border:'rgba(20,5,0,0.3)', text:'#0D0500', textDim:'rgba(13,5,0,0.75)', textMid:'rgba(13,5,0,0.9)', accent:'#5A1E04' },
+  treehouse:  { black:'#1A0F05', surface:'#261508', surface2:'#31190A', surface3:'#3D200D', border:'rgba(120,70,20,0.18)', text:'#F0DFC0', textDim:'rgba(240,223,192,0.45)', textMid:'rgba(240,223,192,0.7)', accent:'#7A4010' },
+  ember:      { black:'#0F0700', surface:'#1A0E00', surface2:'#231400', surface3:'#2D1B00', border:'rgba(255,140,0,0.10)', text:'#FFF0DC', textDim:'rgba(255,240,220,0.4)', textMid:'rgba(255,240,220,0.65)', accent:'#E07B00' },
+  hacker:     { black:'#010A01', surface:'#041004', surface2:'#071607', surface3:'#0B1E0B', border:'rgba(0,255,70,0.08)', text:'#CCFFCC', textDim:'rgba(180,255,180,0.4)', textMid:'rgba(180,255,180,0.65)', accent:'#00CC44' },
+  sakura:     { black:'#120810', surface:'#1C0F1A', surface2:'#271525', surface3:'#321C30', border:'rgba(255,160,200,0.08)', text:'#FFE8F4', textDim:'rgba(255,232,244,0.4)', textMid:'rgba(255,232,244,0.65)', accent:'#D4608A' },
+  tidecaller: { black:'#010D0D', surface:'#051616', surface2:'#092020', surface3:'#0E2B2B', border:'rgba(0,210,180,0.08)', text:'#D4F5F0', textDim:'rgba(212,245,240,0.4)', textMid:'rgba(212,245,240,0.65)', accent:'#00C4A0' },
+  glacier:    { black:'#060C12', surface:'#0C1520', surface2:'#121E2E', surface3:'#18273C', border:'rgba(140,200,255,0.08)', text:'#E4F2FF', textDim:'rgba(228,242,255,0.4)', textMid:'rgba(228,242,255,0.65)', accent:'#4A9ECC' },
+};
+
+function applyTheme(name){
+  const t=THEMES[name]||THEMES.default,root=document.documentElement;
+  document.body.className=document.body.className.replace(/\btheme-\S+/g,'').trim();
+  document.body.classList.add('theme-'+name);
+  root.style.setProperty('--black',t.black);root.style.setProperty('--surface',t.surface);
+  root.style.setProperty('--surface2',t.surface2);root.style.setProperty('--surface3',t.surface3);
+  root.style.setProperty('--border',t.border);root.style.setProperty('--text',t.text);
+  root.style.setProperty('--text-dim',t.textDim);root.style.setProperty('--text-mid',t.textMid);
+  document.querySelectorAll('.theme-btn').forEach(b=>b.classList.toggle('active',b.dataset.theme===name));
+  if(t.accent){
+    applyAccent(t.accent);
+    if(name==='royal'){root.style.setProperty('--red','#E63946');root.style.setProperty('--red-dim','#7A0C14');root.style.setProperty('--border-red','rgba(230,57,70,0.35)');root.style.setProperty('--red-glow','rgba(230,57,70,0.18)');}
+    if(name==='coffee'){root.style.setProperty('--red-glow','rgba(107,42,8,0.22)');root.style.setProperty('--border-red','rgba(107,42,8,0.4)');}
+    if(name==='treehouse'){root.style.setProperty('--red-glow','rgba(122,64,16,0.22)');root.style.setProperty('--border-red','rgba(122,64,16,0.4)');}
+    document.getElementById('colourPicker').value=t.accent;
+  }
+  localStorage.setItem('lifeStats_theme',name);
+  if(currentUsername)scheduleSave();
+}
+
+// ── Event listeners ──
+document.getElementById('loginBtn').addEventListener('click',handleLogin);
+document.getElementById('usernameInput').addEventListener('keydown',e=>{if(e.key==='Enter')handleLogin();});
+document.getElementById('logoutBtn').addEventListener('click',handleLogout);
+document.getElementById('logBtn').addEventListener('click',logAction);
+document.getElementById('actionInput').addEventListener('keydown',e=>{if(e.key==='Enter')logAction();});
+document.getElementById('closeInfoBtn').addEventListener('click',closeInfo);
+document.getElementById('colourPicker').addEventListener('input',e=>{applyAccent(e.target.value);if(currentUsername)scheduleSave();});
+
+document.getElementById('statsGrid').addEventListener('click',e=>{
+  const btn=e.target.closest('.info-btn');if(btn)toggleInfo(btn.dataset.key);
+});
+document.getElementById('customGrid').addEventListener('click',e=>{
+  const btn=e.target.closest('.info-btn');if(btn)toggleInfo(btn.dataset.key);
+});
+
+document.getElementById('logList').addEventListener('click',e=>{
+  const btn=e.target.closest('.log-delete-btn');if(!btn)return;
+  const idx=parseInt(btn.dataset.idx),entry=log[idx];if(!entry)return;
+  if(entry.key==='discipline'&&entry.desc.toLowerCase().includes('hygiene')){
+    hygieneCount=Math.max(0,hygieneCount-(entry.pts||1));
+    const hEl=document.getElementById('hygieneCount');if(hEl)hEl.textContent='🚿 '+hygieneCount;
+  }
+  stats[entry.key]=Math.max(0,(stats[entry.key]||0)-(entry.pts||1));
+  log.splice(idx,1);
+  updateCard(entry.key,stats[entry.key]+(entry.pts||1));
+  renderLog();scheduleSave();
+});
+
+document.querySelectorAll('.pts-btn').forEach(btn=>{
+  btn.addEventListener('click',()=>{selectedPts=parseInt(btn.dataset.pts);document.querySelectorAll('.pts-btn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');});
+});
+
+document.getElementById('clearBtn').addEventListener('click',()=>{
+  if(!confirm('Clear your win history? Stats are kept.'))return;
+  log=[];hygieneCount=0;
+  const hEl=document.getElementById('hygieneCount');if(hEl)hEl.textContent='🚿 0';
+  renderLog();scheduleSave();
+});
+
+document.querySelectorAll('.theme-btn').forEach(btn=>{btn.addEventListener('click',()=>applyTheme(btn.dataset.theme));});
+
+document.querySelectorAll('.bundle-toggle').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    const bundle=btn.closest('.theme-bundle');
+    const isOpen=bundle.classList.contains('open');
+    // Close all bundles first
+    document.querySelectorAll('.theme-bundle').forEach(b=>b.classList.remove('open'));
+    document.querySelectorAll('.bundle-toggle').forEach(b=>b.classList.remove('open'));
+    // Toggle the clicked one open if it was closed
+    if(!isOpen){ bundle.classList.add('open'); btn.classList.add('open'); }
+  });
+});
+
+function openSettings(){document.getElementById('settingsPanel').classList.add('open');document.getElementById('settingsOverlay').classList.add('open');buildRankList(Object.values(stats).reduce((a,b)=>a+b,0));}
+function closeSettings(){document.getElementById('settingsPanel').classList.remove('open');document.getElementById('settingsOverlay').classList.remove('open');}
+document.getElementById('settingsBtn').addEventListener('click',openSettings);
+document.getElementById('settingsClose').addEventListener('click',closeSettings);
+document.getElementById('settingsOverlay').addEventListener('click',closeSettings);
+
+document.getElementById('toggleAnimBars').addEventListener('change',e=>{settings.animBars=e.target.checked;document.getElementById('statsGrid').classList.toggle('animated-bars',e.target.checked);scheduleSave();});
+document.getElementById('toggleAnimBg').addEventListener('change',e=>{applyAnimBg(e.target.checked,settings.bgStyle);scheduleSave();});
+document.querySelectorAll('#bgStyleGroup .option-btn').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    const isOn=document.getElementById('toggleAnimBg').checked;
+    document.getElementById('particles').innerHTML='';
+    applyAnimBg(isOn,btn.dataset.bg);if(isOn)scheduleSave();
+  });
+});
+document.getElementById('toggleCompact').addEventListener('change',e=>{settings.compact=e.target.checked;document.getElementById('statsGrid').classList.toggle('compact',e.target.checked);scheduleSave();});
+document.getElementById('toggleQuote').addEventListener('change',e=>{settings.quote=e.target.checked;const el=document.getElementById('dailyQuote');el.classList.toggle('on',e.target.checked);if(e.target.checked)el.textContent='"'+QUOTES[Math.floor(Math.random()*QUOTES.length)]+'"';scheduleSave();});
+document.getElementById('toggleWeekly').addEventListener('change',e=>{settings.weekly=e.target.checked;document.getElementById('weeklySummary').classList.toggle('on',e.target.checked);if(e.target.checked)updateWeekly();scheduleSave();});
+document.getElementById('clearRankBtn').addEventListener('click',()=>{settings.selectedRank='';document.getElementById('rankTitle').classList.remove('visible');buildRankList(Object.values(stats).reduce((a,b)=>a+b,0));scheduleSave();});
+
+// Init
+const lastUser=localStorage.getItem('lifeStats_lastUser');
+if(lastUser)document.getElementById('usernameInput').value=lastUser;
+const savedAccent=localStorage.getItem('lifeStats_accent');
+if(savedAccent)applyAccent(savedAccent);
+const savedTheme=localStorage.getItem('lifeStats_theme');
+if(savedTheme)applyTheme(savedTheme);
+</script>
+</body>
+</html>
